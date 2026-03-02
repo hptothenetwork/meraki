@@ -1,0 +1,115 @@
+- generic [active] [ref=e1]:
+  - main [ref=e2]:
+    - navigation [ref=e4]:
+      - button "Shopping bag" [ref=e5]:
+        - img [ref=e6]
+    - dialog "Shopping bag" [ref=e9]:
+      - generic [ref=e10]:
+        - heading "Your Bag" [level=2] [ref=e11]
+        - button "Close bag" [ref=e12]:
+          - img [ref=e13]
+      - generic [ref=e17]:
+        - paragraph [ref=e18]: Your bag is empty
+        - button "Continue shopping" [ref=e19]
+    - generic [ref=e20]:
+      - navigation "Breadcrumb" [ref=e21]:
+        - link "Home" [ref=e23] [cursor=pointer]:
+          - /url: /
+        - generic [ref=e24]: /Shop
+      - heading "Shop" [level=1] [ref=e25]
+      - generic [ref=e26]:
+        - button "All" [ref=e27]
+        - button "Boubous" [ref=e28]
+        - button "Kaftans" [ref=e29]
+        - button "New category 2" [ref=e30]
+      - textbox "Search products" [ref=e31]
+      - generic [ref=e32]:
+        - generic [ref=e33]:
+          - generic [ref=e34] [cursor=pointer]:
+            - generic [ref=e35]:
+              - img "Emerald Baroque Kaftan" [ref=e36]
+              - button "Add Emerald Baroque Kaftan to bag" [ref=e37]:
+                - img [ref=e38]
+            - generic [ref=e39]:
+              - paragraph [ref=e40]: Meraki
+              - paragraph [ref=e41]: Emerald Baroque Kaftan
+              - paragraph [ref=e42]: TZS 175,000
+          - link "View Details" [ref=e43] [cursor=pointer]:
+            - /url: /products/emerald-baroque-kaftan
+        - generic [ref=e44]:
+          - generic [ref=e45] [cursor=pointer]:
+            - generic [ref=e46]:
+              - img "Indigo Night Kaftan" [ref=e47]
+              - button "Add Indigo Night Kaftan to bag" [ref=e48]:
+                - img [ref=e49]
+            - generic [ref=e50]:
+              - paragraph [ref=e51]: Meraki
+              - paragraph [ref=e52]: Indigo Night Kaftan
+              - paragraph [ref=e53]: TZS 195,000
+          - link "View Details" [ref=e54] [cursor=pointer]:
+            - /url: /products/indigo-night-kaftan
+        - generic [ref=e55]:
+          - generic [ref=e56] [cursor=pointer]:
+            - generic [ref=e57]:
+              - img "asasasaas.PNG" [ref=e58]
+              - button "Add New Test product to bag" [ref=e59]:
+                - img [ref=e60]
+            - generic [ref=e61]:
+              - paragraph [ref=e62]: Meraki
+              - paragraph [ref=e63]: New Test product
+              - paragraph [ref=e64]: TZS 100,000
+          - link "View Details" [ref=e65] [cursor=pointer]:
+            - /url: /products/new-1772026805486
+        - generic [ref=e66]:
+          - generic [ref=e67] [cursor=pointer]:
+            - generic [ref=e68]:
+              - img "4.PNG" [ref=e69]
+              - button "Add New product 2 to bag" [ref=e70]:
+                - img [ref=e71]
+            - generic [ref=e72]:
+              - paragraph [ref=e73]: Meraki
+              - paragraph [ref=e74]: New product 2
+              - paragraph [ref=e75]: TZS 100,000
+          - link "View Details" [ref=e76] [cursor=pointer]:
+            - /url: /products/new-1772031620654
+        - generic [ref=e77]:
+          - generic [ref=e78] [cursor=pointer]:
+            - generic [ref=e79]:
+              - img "Ocean Bloom Kaftan" [ref=e80]
+              - button "Add Ocean Bloom Kaftan to bag" [ref=e81]:
+                - img [ref=e82]
+            - generic [ref=e83]:
+              - paragraph [ref=e84]: Meraki
+              - paragraph [ref=e85]: Ocean Bloom Kaftan
+              - paragraph [ref=e86]: TZS 185,000
+          - link "View Details" [ref=e87] [cursor=pointer]:
+            - /url: /products/ocean-bloom-kaftan
+        - generic [ref=e88]:
+          - generic [ref=e89] [cursor=pointer]:
+            - generic [ref=e90]:
+              - img "Savannah Kaftan - Red Print" [ref=e91]
+              - button "Add Savannah Kaftan - Red Print to bag" [ref=e92]:
+                - img [ref=e93]
+            - generic [ref=e94]:
+              - paragraph [ref=e95]: Meraki
+              - paragraph [ref=e96]: Savannah Kaftan - Red Print
+              - paragraph [ref=e97]: TZS 185,000
+          - link "View Details" [ref=e98] [cursor=pointer]:
+            - /url: /products/savannah-kaftan-red
+    - generic [ref=e100]:
+      - generic [ref=e101]:
+        - link "Shop" [ref=e102] [cursor=pointer]:
+          - /url: /shop
+        - link "Returns" [ref=e103] [cursor=pointer]:
+          - /url: /returns
+        - link "FAQ" [ref=e104] [cursor=pointer]:
+          - /url: /faq
+        - link "Contact" [ref=e105] [cursor=pointer]:
+          - /url: /contact
+      - paragraph [ref=e106]:
+        - text: (c) 2026 Meraki the Brand. All rights reserved. Made with love by
+        - link "kyro__digital" [ref=e107] [cursor=pointer]:
+          - /url: https://www.instagram.com/kyro__digital/
+        - text: .
+  - region "Notifications alt+T"
+  - alert [ref=e108]
