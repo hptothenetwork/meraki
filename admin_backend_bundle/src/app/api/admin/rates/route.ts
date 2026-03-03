@@ -7,6 +7,19 @@ import { assertSameOrigin } from "@backend/admin/csrf";
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
 
+function isValidCurrency(code: string): boolean {
+  if (!code || typeof code !== "string") return false;
+  const v = code.trim().toUpperCase();
+  if (v.length !== 3) return false;
+  return /^[A-Z]{3}$/.test(v);
+}
+
+function isValidRate(value: number): boolean {
+  if (typeof value !== "number") return false;
+  if (!Number.isFinite(value)) return false;
+  return value > 0;
+}
+
 export async function GET(req: Request) {
   try {
     requireAdmin(req);
@@ -58,30 +71,51 @@ export async function POST(req: Request) {
   const body = (await req.json()) as Partial<CurrencyRate> & { defaultCurrency?: string; makeDefault?: boolean };
 
   if (body.defaultCurrency && !body.base && !body.target && !body.rate) {
-    const defaultCurrency = body.defaultCurrency.toUpperCase();
+    const defaultCurrency = body.defaultCurrency.trim().toUpperCase();
+    if (!isValidCurrency(defaultCurrency)) {
+      return NextResponse.json({ error: "Invalid defaultCurrency" }, { status: 400 });
+    }
     await setRatesConfig({ defaultCurrency });
     const rates = await listRates();
     return NextResponse.json({ ok: true, defaultCurrency, rates });
   }
 
-  if (!body.rate || !body.base || !body.target) {
+  if (body.rate === undefined || !body.base || !body.target) {
     return NextResponse.json({ error: "Invalid payload" }, { status: 400 });
   }
 
+  const base = body.base.trim().toUpperCase();
+  const target = body.target.trim().toUpperCase();
+  const rateValue = Number(body.rate);
+
+  if (!isValidCurrency(base) || !isValidCurrency(target)) {
+    return NextResponse.json({ error: "Invalid currency code" }, { status: 400 });
+  }
+  if (base === target) {
+    return NextResponse.json({ error: "Base and target must differ" }, { status: 400 });
+  }
+  if (!isValidRate(rateValue)) {
+    return NextResponse.json({ error: "Invalid rate" }, { status: 400 });
+  }
+
   const rate: CurrencyRate = {
-    base: body.base.toUpperCase(),
-    target: body.target.toUpperCase(),
-    rate: body.rate,
+    base,
+    target,
+    rate: rateValue,
     source: body.source ?? "manual",
     updatedAt: new Date().toISOString(),
   };
-  const saved = await upsertRate(rate);
-  if (body.makeDefault) {
-    await setRatesConfig({ defaultCurrency: rate.target });
+  try {
+    const saved = await upsertRate(rate);
+    if (body.makeDefault) {
+      await setRatesConfig({ defaultCurrency: rate.target });
+    }
+    const rates = await listRates();
+    const config = await getRatesConfig();
+    return NextResponse.json({ rate: saved, rates, defaultCurrency: config?.defaultCurrency });
+  } catch {
+    return NextResponse.json({ error: "Failed to save rate" }, { status: 500 });
   }
-  const rates = await listRates();
-  const config = await getRatesConfig();
-  return NextResponse.json({ rate: saved, rates, defaultCurrency: config?.defaultCurrency });
 }
 
 export async function DELETE(req: Request) {
