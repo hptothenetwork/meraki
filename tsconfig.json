@@ -26,6 +26,10 @@
       "@/*": [
         "./*"
       ]
+      ,
+      "@backend/*": [
+        "mrk/admin_backend_bundle/backend/*"
+      ]
     }
   },
   "include": [
