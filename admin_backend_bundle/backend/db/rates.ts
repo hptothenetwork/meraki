@@ -1,6 +1,6 @@
 import "server-only";
 import { db } from "../firebase.server";
-import type { CurrencyRate } from "@/types/catalog";
+import type { CurrencyRate } from "../../src/types/catalog";
 
 const collectionName = "rates";
 const defaultDocId = "usd-tzs";

@@ -29,7 +29,6 @@ export default async function AboutPage() {
   return (
     <main className="min-h-screen bg-background">
       <Navbar
-        brandVariant="about"
         hideSearchIcon
         hideCartIcon
         hideAccountIcon

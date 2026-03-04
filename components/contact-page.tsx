@@ -132,8 +132,8 @@ export function ContactPage({ siteAssets, mode = "contact" }: { siteAssets: Site
       />
 
       <section className="relative overflow-hidden border-b border-border">
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(196,169,125,0.22),transparent_55%)]" />
-        <div className={`mx-auto max-w-7xl px-4 md:px-8 ${useMinimalTopBar ? "pb-12 pt-16 md:pb-16 md:pt-20" : "py-12 md:py-16"}`}>
+        <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(196,169,125,0.22),transparent_55%)]" />
+        <div className={`relative z-10 mx-auto max-w-7xl px-4 md:px-8 ${useMinimalTopBar ? "pb-12 pt-16 md:pb-16 md:pt-20" : "py-12 md:py-16"}`}>
           {useMinimalTopBar && (
             <nav aria-label="Breadcrumb" className="mb-5 text-[11px] uppercase tracking-[0.18em] text-muted-foreground">
               <Link href="/" className="hover:text-foreground">

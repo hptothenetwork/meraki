@@ -1,6 +1,7 @@
 import type { Metadata } from "next"
 import Link from "next/link"
 import { Navbar } from "@/components/navbar"
+import { SiteBreadcrumbs } from "@/components/site-breadcrumbs"
 import { SiteFooter } from "@/components/site-footer"
 import { loadStorefrontData } from "@/lib/storefront-data"
 
@@ -26,6 +27,7 @@ export default async function CollectionsPage() {
         alwaysShowMenuButton
       />
       <section className="mx-auto max-w-7xl px-4 pb-10 pt-28 md:px-8 md:pb-12 md:pt-32">
+        <SiteBreadcrumbs items={[{ label: "HOME", href: "/" }, { label: "COLLECTIONS" }]} className="mb-5" />
         <h1 className="font-serif text-4xl text-foreground">Collections</h1>
         <p className="mt-2 text-muted-foreground">Explore collections by category.</p>
         <div className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
