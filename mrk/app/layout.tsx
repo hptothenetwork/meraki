@@ -94,8 +94,8 @@ export default function RootLayout({
   const globalJsonLd = [buildOrganizationJsonLd(), buildWebsiteJsonLd()]
 
   return (
-    <html lang="en" data-scroll-behavior="smooth">
-      <body className={`${inter.variable} ${playfair.variable} ${dancing.variable} font-sans antialiased`}>
+    <html lang="en" data-scroll-behavior="smooth" suppressHydrationWarning>
+      <body className={`${inter.variable} ${playfair.variable} ${dancing.variable} font-sans antialiased`} suppressHydrationWarning>
         <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: safeJsonLd(globalJsonLd) }} />
         <CartProvider>{children}</CartProvider>
         <Toaster

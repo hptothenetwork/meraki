@@ -26,6 +26,7 @@ function ProductDetailInner({ product, relatedProducts, allProducts }: ProductDe
   const [shareUrl, setShareUrl] = useState("")
   const [shareHint, setShareHint] = useState("")
   const isSoldOut = Boolean(product.soldOut)
+  const productPath = `/products/${encodeURIComponent(product.slug || product.id)}`
 
   useEffect(() => {
     // eslint-disable-next-line react-hooks/set-state-in-effect
@@ -33,11 +34,10 @@ function ProductDetailInner({ product, relatedProducts, allProducts }: ProductDe
   }, [])
 
   useEffect(() => {
-    const path = `/products/${encodeURIComponent(product.slug || product.id)}`
-    const absolute = typeof window === "undefined" ? path : `${window.location.origin}${path}`
+    const absolute = typeof window === "undefined" ? productPath : `${window.location.origin}${productPath}`
     // eslint-disable-next-line react-hooks/set-state-in-effect
     setShareUrl(absolute)
-  }, [product.id, product.slug])
+  }, [productPath])
 
   const galleryMedia = useMemo(() => {
     const productMedia =
@@ -102,25 +102,26 @@ function ProductDetailInner({ product, relatedProducts, allProducts }: ProductDe
   const showFitCard =
     product.showFitSize !== false || product.showFabricCare !== false || product.showShippingReturns !== false
   const shareText = `${product.name} | Meraki the Brand`
+  const shareTargetUrl = shareUrl || productPath
 
   const shareItems = useMemo(
     () => [
       {
         key: "facebook" as const,
         label: "Facebook",
-        href: `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(shareUrl)}`,
+        href: `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(shareTargetUrl)}`,
         icon: "/socialicons/facebook.png",
       },
       {
         key: "twitter" as const,
         label: "X (Twitter)",
-        href: `https://twitter.com/intent/tweet?url=${encodeURIComponent(shareUrl)}&text=${encodeURIComponent(shareText)}`,
+        href: `https://twitter.com/intent/tweet?url=${encodeURIComponent(shareTargetUrl)}&text=${encodeURIComponent(shareText)}`,
         icon: null,
       },
       {
         key: "whatsapp" as const,
         label: "WhatsApp",
-        href: `https://api.whatsapp.com/send?text=${encodeURIComponent(`${shareText} ${shareUrl}`)}`,
+        href: `https://api.whatsapp.com/send?text=${encodeURIComponent(`${shareText} ${shareTargetUrl}`)}`,
         icon: "/socialicons/whatsapp.jpg",
       },
       {
@@ -136,23 +137,58 @@ function ProductDetailInner({ product, relatedProducts, allProducts }: ProductDe
         icon: "/socialicons/snapchat.jpg",
       },
     ],
-    [shareText, shareUrl],
+    [shareTargetUrl, shareText],
   )
+
+  const copyShareUrl = async () => {
+    if (typeof window === "undefined") return false
+    if (typeof navigator !== "undefined" && navigator.clipboard?.writeText) {
+      try {
+        await navigator.clipboard.writeText(shareTargetUrl)
+        return true
+      } catch {}
+    }
+    if (typeof document !== "undefined") {
+      const textarea = document.createElement("textarea")
+      textarea.value = shareTargetUrl
+      textarea.setAttribute("readonly", "")
+      textarea.style.position = "fixed"
+      textarea.style.opacity = "0"
+      document.body.appendChild(textarea)
+      textarea.focus()
+      textarea.select()
+      let copied = false
+      try {
+        copied = document.execCommand("copy")
+      } catch {
+        copied = false
+      }
+      document.body.removeChild(textarea)
+      if (copied) return true
+    }
+    return false
+  }
+
+  const openExternalShare = (href: string) => {
+    if (typeof window === "undefined") return
+    const opened = window.open(href, "_blank", "noopener,noreferrer")
+    if (!opened) window.location.assign(href)
+  }
 
   const openShare = async (item: { key: ShareNetwork; href: string }) => {
     if (item.key === "instagram" || item.key === "snapchat") {
-      if (shareUrl && typeof navigator !== "undefined" && navigator.clipboard?.writeText) {
-        try {
-          await navigator.clipboard.writeText(shareUrl)
-          setShareHint(`${item.key === "instagram" ? "Instagram" : "Snapchat"} opened. Product link copied, paste it in your post.`)
-        } catch {
-          setShareHint(`Open ${item.key === "instagram" ? "Instagram" : "Snapchat"} and paste this product link manually.`)
-        }
+      openExternalShare(item.href)
+      const copied = await copyShareUrl()
+      if (copied) setShareHint(`${item.key === "instagram" ? "Instagram" : "Snapchat"} opened. Product link copied, paste it in your post.`)
+      else {
+        if (typeof window !== "undefined") window.prompt("Copy this product link", shareTargetUrl)
+        setShareHint(`Opened ${item.key === "instagram" ? "Instagram" : "Snapchat"}. Copy and paste this product link manually.`)
       }
+      return
     } else {
       setShareHint("")
     }
-    window.open(item.href, "_blank", "noopener,noreferrer")
+    openExternalShare(item.href)
   }
 
   return (
@@ -321,6 +357,38 @@ function ProductDetailInner({ product, relatedProducts, allProducts }: ProductDe
                 </Link>
               )}
             </div>
+
+            <div className="mt-6 border-t border-border pt-4">
+              <p className="text-xs uppercase tracking-[0.18em] text-muted-foreground">Share</p>
+              <div className="mt-3 flex flex-wrap items-center gap-2">
+                {shareItems.map((social) => {
+                  return (
+                    <button
+                      type="button"
+                      key={social.key}
+                      onClick={() => void openShare(social)}
+                      className="inline-flex h-9 w-9 items-center justify-center overflow-hidden rounded-full border border-border bg-background/80 transition hover:opacity-85"
+                      aria-label={`Share on ${social.label}`}
+                      title={social.label}
+                    >
+                      {social.icon ? (
+                        <Image
+                          src={social.icon}
+                          alt={social.label}
+                          width={36}
+                          height={36}
+                          unoptimized
+                          className="h-full w-full object-cover"
+                        />
+                      ) : (
+                        <span className="text-sm font-semibold text-foreground">X</span>
+                      )}
+                    </button>
+                  )
+                })}
+              </div>
+              {shareHint && <p className="mt-2 text-xs text-muted-foreground">{shareHint}</p>}
+            </div>
           </div>
         </div>
 
@@ -329,37 +397,6 @@ function ProductDetailInner({ product, relatedProducts, allProducts }: ProductDe
             <article className="rounded-2xl border border-border bg-card p-6">
               <h2 className="font-serif text-2xl text-foreground">Description</h2>
               <p className="mt-3 text-sm leading-relaxed text-muted-foreground">{product.description}</p>
-              <div className="mt-5 border-t border-border pt-4">
-                <p className="text-xs uppercase tracking-[0.18em] text-muted-foreground">Share</p>
-                <div className="mt-3 flex flex-wrap items-center gap-2">
-                  {shareItems.map((social) => {
-                    return (
-                      <button
-                        type="button"
-                        key={social.key}
-                        onClick={() => void openShare(social)}
-                        className="inline-flex h-9 w-9 items-center justify-center overflow-hidden rounded-full border border-border bg-background/80 transition hover:opacity-85"
-                        aria-label={`Share on ${social.label}`}
-                        title={social.label}
-                      >
-                        {social.icon ? (
-                          <Image
-                            src={social.icon}
-                            alt={social.label}
-                            width={36}
-                            height={36}
-                            unoptimized
-                            className="h-full w-full object-cover"
-                          />
-                        ) : (
-                          <span className="text-sm font-semibold text-foreground">X</span>
-                        )}
-                      </button>
-                    )
-                  })}
-                </div>
-                {shareHint && <p className="mt-2 text-xs text-muted-foreground">{shareHint}</p>}
-              </div>
             </article>
           )}
           <article className="rounded-2xl border border-border bg-card p-6">

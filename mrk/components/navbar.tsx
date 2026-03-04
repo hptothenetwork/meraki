@@ -127,7 +127,7 @@ export function Navbar({
             <button
               type="button"
               onClick={() => setIsCartOpen(true)}
-              className="relative transition-colors text-foreground hover:text-foreground/75"
+              className={`${topRailOffsetClass} relative transition-colors text-foreground hover:text-foreground/75`}
               aria-label="Shopping bag"
             >
               <ShoppingBag className="h-[18px] w-[18px]" />
@@ -171,8 +171,8 @@ export function Navbar({
                   {breadcrumbItems.map((item, index) => (
                     <span key={`${item.label}-${index}`}>
                       {index > 0 && <span className="px-2 text-muted-foreground/70">/</span>}
-                      {item.href ? (
-                        <Link href={item.href} className="hover:text-foreground">
+                      {item.href || item.label.trim().toUpperCase() === "HOME" ? (
+                        <Link href={item.href || "/"} className="hover:text-foreground">
                           {item.label}
                         </Link>
                       ) : (

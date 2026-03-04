@@ -104,8 +104,8 @@ function normalizeProduct(raw: Record<string, unknown>): Product {
     asStringArray(raw.sizes) ||
     (Array.isArray(raw.sizeStock)
       ? raw.sizeStock
-          .map((s) => (typeof s === "object" && s ? asString((s as Record<string, unknown>).size) : ""))
-          .filter((size): size is string => Boolean(size))
+        .map((s) => (typeof s === "object" && s ? asString((s as Record<string, unknown>).size) : ""))
+        .filter((size): size is string => Boolean(size))
       : [])
   const hasSizeVariants = asBoolean(raw.hasSizeVariants) ?? false
   const normalizedSizes = hasSizeVariants ? (sizeGuide.length > 0 ? sizeGuide : ["S", "M", "L"]) : ["Free Size"]
@@ -272,6 +272,9 @@ function normalizeAssetUrl(value: string | undefined): string {
   const src = (value || "").trim()
   if (!src) return ""
   if (src.startsWith("data:")) return src
+  // Strip localhost origin saved during local development
+  const stripped = src.replace(/^https?:\/\/localhost(:\d+)?/i, "")
+  if (stripped !== src) return stripped || "/"
   if (/^https?:\/\//i.test(src)) return src
   if (src.startsWith("/")) return src
 

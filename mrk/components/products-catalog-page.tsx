@@ -40,7 +40,7 @@ export function ProductsCatalogPage({
     <main className="min-h-screen bg-background">
       <Navbar cartOnly />
       <MiniCart />
-      <section className="mx-auto max-w-7xl px-4 py-10 md:px-8">
+      <section className="mx-auto max-w-7xl px-4 pb-10 pt-28 md:px-8 md:pb-12 md:pt-32">
         <SiteBreadcrumbs items={[{ label: "Home", href: "/" }, { label: "Shop" }]} className="mb-4" />
         <h1 className="font-serif text-4xl text-foreground">Shop</h1>
         <div className="mt-6 flex flex-wrap gap-2">
