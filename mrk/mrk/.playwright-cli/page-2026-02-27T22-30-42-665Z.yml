@@ -1,0 +1,102 @@
+- generic [active] [ref=e1]:
+  - main [ref=e2]:
+    - button "Open shopping bag" [ref=e3]:
+      - img [ref=e4]
+    - dialog "Shopping bag" [ref=e7]:
+      - generic [ref=e8]:
+        - heading "Your Bag" [level=2] [ref=e9]
+        - button "Close bag" [ref=e10]:
+          - img [ref=e11]
+      - generic [ref=e15]:
+        - paragraph [ref=e16]: Your bag is empty
+        - button "Continue shopping" [ref=e17]
+    - generic [ref=e18]:
+      - generic [ref=e19]:
+        - link "Home" [ref=e20] [cursor=pointer]:
+          - /url: /
+        - text: /
+        - link "Shop" [ref=e21] [cursor=pointer]:
+          - /url: /shop
+        - text: / savannah / Savannah Kaftan - Red Print
+      - generic [ref=e22]:
+        - generic [ref=e23]:
+          - img "Savannah Kaftan - Red Print" [ref=e25]
+          - button "Show media 1" [ref=e27]:
+            - img "Savannah Kaftan - Red Print" [ref=e28]
+        - generic [ref=e29]:
+          - paragraph [ref=e30]: Meraki
+          - heading "Savannah Kaftan - Red Print" [level=1] [ref=e31]
+          - paragraph [ref=e32]: TZS 185,000
+          - generic [ref=e33]: Sold out
+          - generic [ref=e34]:
+            - generic [ref=e35]:
+              - img [ref=e36]
+              - text: Premium quality checked before dispatch
+            - generic [ref=e39]:
+              - img [ref=e40]
+              - text: Fast regional and international delivery
+            - generic [ref=e45]:
+              - img [ref=e46]
+              - text: Free size fit designed for comfortable wear
+          - generic [ref=e49]:
+            - paragraph [ref=e50]: Quantity
+            - generic [ref=e51]:
+              - button "-" [disabled] [ref=e52]
+              - generic [ref=e53]: "1"
+              - button "+" [disabled] [ref=e54]
+          - generic [ref=e55]:
+            - button "Sold out" [disabled] [ref=e56]
+            - generic [ref=e57]: Unavailable
+      - generic [ref=e58]:
+        - article [ref=e59]:
+          - heading "Description" [level=2] [ref=e60]
+          - paragraph [ref=e61]: A signature Savannah piece designed for confident modest style, crafted for comfort and elevated everyday wear.
+          - generic [ref=e62]:
+            - paragraph [ref=e63]: Share
+            - generic [ref=e64]:
+              - button "Share on Facebook" [ref=e65]:
+                - img "Facebook" [ref=e66]
+              - button "Share on X (Twitter)" [ref=e67]:
+                - generic [ref=e68]: X
+              - button "Share on WhatsApp" [ref=e69]:
+                - img "WhatsApp" [ref=e70]
+              - button "Share on Instagram" [ref=e71]:
+                - img "Instagram" [ref=e72]
+              - button "Share on Snapchat" [ref=e73]:
+                - img "Snapchat" [ref=e74]
+        - article [ref=e75]:
+          - heading "Why You'll Love It" [level=2] [ref=e76]
+          - list [ref=e77]:
+            - listitem [ref=e78]:
+              - img [ref=e79]
+              - generic [ref=e81]: Graceful coverage tailored for confident movement
+            - listitem [ref=e82]:
+              - img [ref=e83]
+              - generic [ref=e85]: Versatile styling for events, work, and weekend looks
+            - listitem [ref=e86]:
+              - img [ref=e87]
+              - generic [ref=e89]: Designed to feel breathable and polished all day
+        - article [ref=e90]:
+          - heading "Fit, Care & Shipping" [level=2] [ref=e91]
+          - generic [ref=e92]:
+            - paragraph [ref=e93]: "Fit: Relaxed flowing fit"
+            - paragraph [ref=e94]: "Fabric: Premium breathable blend"
+            - paragraph [ref=e95]: "Care: Hand wash cold, line dry"
+            - paragraph [ref=e96]: "Shipping: Processing in 1-2 business days. Delivery time depends on destination and courier availability."
+    - generic [ref=e98]:
+      - generic [ref=e99]:
+        - link "Shop" [ref=e100] [cursor=pointer]:
+          - /url: /shop
+        - link "Returns" [ref=e101] [cursor=pointer]:
+          - /url: /returns
+        - link "FAQ" [ref=e102] [cursor=pointer]:
+          - /url: /faq
+        - link "Contact" [ref=e103] [cursor=pointer]:
+          - /url: /contact
+      - paragraph [ref=e104]:
+        - text: (c) 2026 Meraki the Brand. All rights reserved. Made with love by
+        - link "kyro__digital" [ref=e105] [cursor=pointer]:
+          - /url: https://www.instagram.com/kyro__digital/
+        - text: .
+  - region "Notifications alt+T"
+  - alert [ref=e106]
