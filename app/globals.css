@@ -1,0 +1,134 @@
+@import 'tailwindcss';
+@import 'tw-animate-css';
+
+@custom-variant dark (&:is(.dark *));
+
+:root {
+  --background: #F6F0E8;
+  --foreground: #3A3632;
+  --card: #FFFBF5;
+  --card-foreground: #3A3632;
+  --popover: #FFFBF5;
+  --popover-foreground: #3A3632;
+  --primary: #3A3632;
+  --primary-foreground: #F6F0E8;
+  --secondary: #EDE6DA;
+  --secondary-foreground: #3A3632;
+  --muted: #EDE6DA;
+  --muted-foreground: #8A8279;
+  --accent: #C4A97D;
+  --accent-foreground: #3A3632;
+  --destructive: #B44A3F;
+  --destructive-foreground: #F6F0E8;
+  --border: #DDD5C8;
+  --input: #DDD5C8;
+  --ring: #C4A97D;
+  --radius: 0.5rem;
+  --gold: #C4A97D;
+  --cream: #F6F0E8;
+  --cream-dark: #EDE6DA;
+}
+
+@theme inline {
+  --font-sans: 'Inter', sans-serif;
+  --font-serif: 'Playfair Display', serif;
+  --font-mono: 'Geist Mono', 'Geist Mono Fallback';
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --color-gold: var(--gold);
+  --color-cream: var(--cream);
+  --color-cream-dark: var(--cream-dark);
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+  body {
+    @apply bg-background text-foreground;
+  }
+}
+
+/* Smooth scroll */
+html {
+  scroll-behavior: smooth;
+  scrollbar-gutter: stable;
+}
+
+/* Custom scrollbar for the luxury feel */
+::-webkit-scrollbar {
+  width: 6px;
+}
+::-webkit-scrollbar-track {
+  background: var(--cream);
+}
+::-webkit-scrollbar-thumb {
+  background: var(--border);
+  border-radius: 3px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--gold);
+}
+
+/* Hide horizontal scrollbar on carousels */
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}
+
+@keyframes partners-ticker-loop {
+  from {
+    transform: translate3d(100vw, -50%, 0);
+  }
+  to {
+    transform: translate3d(-10rem, -50%, 0);
+  }
+}
+
+.partners-ticker {
+  position: relative;
+  overflow: hidden;
+  height: clamp(4.5rem, 9vw, 5.5rem);
+}
+
+.partners-ticker-item {
+  position: absolute;
+  left: 0;
+  top: 50%;
+  width: clamp(6.5rem, 10vw, 8.5rem);
+  transform: translate3d(100vw, -50%, 0);
+  animation-name: partners-ticker-loop;
+  animation-timing-function: linear;
+  animation-iteration-count: infinite;
+  will-change: transform;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .partners-ticker-item {
+    animation-duration: 60s !important;
+  }
+}

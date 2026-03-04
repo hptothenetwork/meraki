@@ -1,0 +1,251 @@
+- generic [active] [ref=e1]:
+  - generic [ref=e2]:
+    - generic [ref=e4]:
+      - generic [ref=e5]: Nationwide & International Delivery
+      - generic [ref=e6]: Graceful silhouettes with confident coverage
+      - generic [ref=e7]: Secure Checkout
+    - banner [ref=e8]:
+      - navigation [ref=e9]:
+        - generic [ref=e10]:
+          - button "Shop" [ref=e11]
+          - link "Collections" [ref=e12] [cursor=pointer]:
+            - /url: /collections
+          - link "About" [ref=e13] [cursor=pointer]:
+            - /url: /about
+          - link "Events" [ref=e14] [cursor=pointer]:
+            - /url: /events
+          - link "Blogs" [ref=e15] [cursor=pointer]:
+            - /url: /blogs
+          - link "Contact" [ref=e16] [cursor=pointer]:
+            - /url: /contact
+        - link "Meraki the Brand" [ref=e18] [cursor=pointer]:
+          - /url: /
+          - img "Meraki the Brand" [ref=e19]
+        - generic [ref=e20]:
+          - link "Search" [ref=e21] [cursor=pointer]:
+            - /url: /search
+            - img [ref=e22]
+          - link "Account" [ref=e25] [cursor=pointer]:
+            - /url: /account
+            - img [ref=e26]
+          - button "Shopping bag" [ref=e29]:
+            - img [ref=e30]
+    - generic:
+      - dialog "Mobile navigation":
+        - generic:
+          - button "Close menu":
+            - img
+        - navigation:
+          - list:
+            - listitem:
+              - link "Shop":
+                - /url: /shop
+            - listitem:
+              - link "Collections":
+                - /url: /collections
+            - listitem:
+              - link "About":
+                - /url: /about
+            - listitem:
+              - link "Events":
+                - /url: /events
+            - listitem:
+              - link "Blogs":
+                - /url: /blogs
+            - listitem:
+              - link "Contact":
+                - /url: /contact
+        - generic:
+          - generic:
+            - link "Instagram":
+              - /url: https://instagram.com/merakithebrand
+              - img
+    - dialog "Shopping bag" [ref=e33]:
+      - generic [ref=e34]:
+        - heading "Your Bag" [level=2] [ref=e35]
+        - button "Close bag" [ref=e36]:
+          - img [ref=e37]
+      - generic [ref=e41]:
+        - paragraph [ref=e42]: Your bag is empty
+        - button "Continue shopping" [ref=e43]
+    - main [ref=e44]:
+      - generic [ref=e45]:
+        - img "Meraki hero section" [ref=e47]
+        - generic [ref=e50]:
+          - generic [ref=e51]:
+            - paragraph [ref=e52]: Afro-Inspired Elegant Wear
+            - heading "Made with soul, creativity & love." [level=1] [ref=e53]
+            - paragraph [ref=e54]: Elegant kaftans with graceful coverage for the confident, modern woman. Designed in Tanzania.
+            - generic [ref=e55]:
+              - link "Shop Collection" [ref=e56] [cursor=pointer]:
+                - /url: /products
+              - link "Our Story" [ref=e57] [cursor=pointer]:
+                - /url: /#our-story
+          - generic [ref=e59]:
+            - generic [ref=e60]: Scroll
+            - img [ref=e61]
+      - generic [ref=e63]:
+        - heading "Quick Shop" [level=2] [ref=e65]
+        - generic [ref=e66]:
+          - link "Savannah Kaftan - Red Print Savannah Kaftan - Red Print TZS 185,000" [ref=e67] [cursor=pointer]:
+            - /url: /products/savannah-kaftan-red
+            - img "Savannah Kaftan - Red Print" [ref=e69]
+            - paragraph [ref=e70]: Savannah Kaftan - Red Print
+            - paragraph [ref=e71]: TZS 185,000
+          - link "Indigo Night Kaftan Indigo Night Kaftan TZS 195,000" [ref=e72] [cursor=pointer]:
+            - /url: /products/indigo-night-kaftan
+            - img "Indigo Night Kaftan" [ref=e74]
+            - paragraph [ref=e75]: Indigo Night Kaftan
+            - paragraph [ref=e76]: TZS 195,000
+          - link "Emerald Baroque Kaftan Emerald Baroque Kaftan TZS 175,000" [ref=e77] [cursor=pointer]:
+            - /url: /products/emerald-baroque-kaftan
+            - img "Emerald Baroque Kaftan" [ref=e79]
+            - paragraph [ref=e80]: Emerald Baroque Kaftan
+            - paragraph [ref=e81]: TZS 175,000
+          - link "Ocean Bloom Kaftan Ocean Bloom Kaftan TZS 185,000" [ref=e82] [cursor=pointer]:
+            - /url: /products/ocean-bloom-kaftan
+            - img "Ocean Bloom Kaftan" [ref=e84]
+            - paragraph [ref=e85]: Ocean Bloom Kaftan
+            - paragraph [ref=e86]: TZS 185,000
+      - generic [ref=e87]:
+        - generic [ref=e88]:
+          - generic [ref=e89]:
+            - button "Scroll Boubous left" [disabled] [ref=e90]:
+              - img [ref=e91]
+            - heading "Boubous" [level=2] [ref=e93]
+            - button "Scroll Boubous right" [disabled] [ref=e94]:
+              - img [ref=e95]
+          - link "View All" [ref=e97] [cursor=pointer]:
+            - /url: /shop/boubous
+        - link "Ocean Bloom Kaftan Sold Out Ocean Bloom Kaftan TZS 185,000" [ref=e99] [cursor=pointer]:
+          - /url: /products/ocean-bloom-kaftan
+          - generic [ref=e100]:
+            - img "Ocean Bloom Kaftan" [ref=e101]
+            - generic [ref=e102]: Sold Out
+          - generic [ref=e103]:
+            - paragraph [ref=e104]: Ocean Bloom Kaftan
+            - paragraph [ref=e105]: TZS 185,000
+      - generic [ref=e106]:
+        - generic [ref=e107]:
+          - generic [ref=e108]:
+            - button "Scroll Kaftans left" [disabled] [ref=e109]:
+              - img [ref=e110]
+            - heading "Kaftans" [level=2] [ref=e112]
+            - button "Scroll Kaftans right" [disabled] [ref=e113]:
+              - img [ref=e114]
+          - link "View All" [ref=e116] [cursor=pointer]:
+            - /url: /shop/kaftans
+        - generic [ref=e117]:
+          - link "Emerald Baroque Kaftan Sold Out Emerald Baroque Kaftan TZS 175,000" [ref=e118] [cursor=pointer]:
+            - /url: /products/emerald-baroque-kaftan
+            - generic [ref=e119]:
+              - img "Emerald Baroque Kaftan" [ref=e120]
+              - generic [ref=e121]: Sold Out
+            - generic [ref=e122]:
+              - paragraph [ref=e123]: Emerald Baroque Kaftan
+              - paragraph [ref=e124]: TZS 175,000
+          - link "Indigo Night Kaftan Sold Out Indigo Night Kaftan TZS 195,000" [ref=e125] [cursor=pointer]:
+            - /url: /products/indigo-night-kaftan
+            - generic [ref=e126]:
+              - img "Indigo Night Kaftan" [ref=e127]
+              - generic [ref=e128]: Sold Out
+            - generic [ref=e129]:
+              - paragraph [ref=e130]: Indigo Night Kaftan
+              - paragraph [ref=e131]: TZS 195,000
+      - generic [ref=e132]:
+        - generic [ref=e133]:
+          - generic [ref=e134]:
+            - button "Scroll New category 2 left" [disabled] [ref=e135]:
+              - img [ref=e136]
+            - heading "New category 2" [level=2] [ref=e138]
+            - button "Scroll New category 2 right" [disabled] [ref=e139]:
+              - img [ref=e140]
+          - link "View All" [ref=e142] [cursor=pointer]:
+            - /url: /shop/cat-1772031590998
+        - link "4.PNG 5.PNG New product 2 TZS 100,000" [ref=e144] [cursor=pointer]:
+          - /url: /products/new-1772031620654
+          - generic [ref=e145]:
+            - img "4.PNG" [ref=e146]
+            - img "5.PNG" [ref=e147]
+          - generic [ref=e148]:
+            - paragraph [ref=e149]: New product 2
+            - paragraph [ref=e150]: TZS 100,000
+      - generic [ref=e153]:
+        - generic [ref=e154]:
+          - img "Meraki the Brand - Afro-inspired kaftan craftsmanship" [ref=e156]
+          - paragraph [ref=e157]: putting soul, creativity & love into everything we do
+        - generic [ref=e158]:
+          - paragraph [ref=e159]: Our Story
+          - heading "Born from Passion, Rooted in Africa" [level=2] [ref=e160]
+          - generic [ref=e161]:
+            - paragraph [ref=e162]: Meraki the Brand was born from passion, purpose, and a deep love for African identity. What started as a local dream has grown into a brand that proudly sews, designs, and represents Afro-inspired and modest casual wear made for today's confident, modern woman.
+            - paragraph [ref=e163]: "Our design language is intentionally modest at its core: longer lines, comfortable coverage, breathable fabrics, and elegant silhouettes that let women feel confident without compromising personal values."
+            - paragraph [ref=e164]: From our early days of small productions and learning every stitch by hand, we have grown step by step through consistency, faith, and the unwavering support of our customers. Every collection tells a story — of culture, craftsmanship, and commitment to quality.
+            - paragraph [ref=e165]: Today, Meraki the Brand stands strong as a local Tanzanian brand with agents across different countries. Our designs have crossed borders while staying true to their roots, carrying the beauty of Afro heritage wherever they go.
+          - generic [ref=e166]:
+            - generic [ref=e167]:
+              - img [ref=e169]
+              - generic [ref=e173]: Small batches
+            - generic [ref=e174]:
+              - img [ref=e176]
+              - generic [ref=e182]: Handcrafted finishing
+            - generic [ref=e183]:
+              - img [ref=e185]
+              - generic [ref=e188]: Designed in Tanzania
+            - generic [ref=e189]:
+              - img [ref=e191]
+              - generic [ref=e194]: Agents worldwide
+      - generic [ref=e196]:
+        - heading "Partners" [level=2] [ref=e198]
+        - generic [ref=e199]:
+          - link "Meraki Studio" [ref=e200] [cursor=pointer]:
+            - /url: https://www.instagram.com/
+            - img "Meraki Studio" [ref=e201]
+          - link "Editorial Partner" [ref=e202] [cursor=pointer]:
+            - /url: https://example.com
+            - img "Editorial Partner" [ref=e203]
+    - generic [ref=e206]:
+      - heading "Be Part of Our Story" [level=2] [ref=e207]
+      - paragraph [ref=e208]: New collection alerts, early access, and exclusive offers from Meraki the Brand.
+      - generic [ref=e209]:
+        - generic [ref=e210]:
+          - textbox "Email address" [ref=e212]:
+            - /placeholder: your@email.com
+          - button "Subscribe" [ref=e213]
+        - iframe [ref=e219]:
+          - generic [ref=f1e2]:
+            - generic [ref=f1e3]:
+              - checkbox "I'm not a robot" [ref=f1e7]
+              - generic [ref=f1e11]: I'm not a robot
+            - generic [ref=f1e12]:
+              - generic [ref=f1e15]: reCAPTCHA
+              - generic [ref=f1e16]:
+                - link "Privacy" [ref=f1e17] [cursor=pointer]:
+                  - /url: https://www.google.com/intl/en/policies/privacy/
+                - text: "-"
+                - link "Terms" [ref=f1e18] [cursor=pointer]:
+                  - /url: https://www.google.com/intl/en/policies/terms/
+      - paragraph [ref=e220]: No spam. Unsubscribe anytime.
+    - contentinfo [ref=e221]:
+      - generic [ref=e222]:
+        - generic [ref=e223]:
+          - link "Shop" [ref=e224] [cursor=pointer]:
+            - /url: /shop
+          - link "Returns" [ref=e225] [cursor=pointer]:
+            - /url: /returns
+          - link "FAQ" [ref=e226] [cursor=pointer]:
+            - /url: /faq
+          - link "Contact" [ref=e227] [cursor=pointer]:
+            - /url: /contact
+        - paragraph [ref=e228]:
+          - text: (c) 2026 Meraki the Brand. All rights reserved. Made with love by
+          - link "kyro__digital" [ref=e229] [cursor=pointer]:
+            - /url: https://www.instagram.com/kyro__digital/
+          - text: .
+    - generic [ref=e230]:
+      - generic: Need Help? Chat with us
+      - link "Chat with us on WhatsApp" [ref=e231] [cursor=pointer]:
+        - /url: https://wa.me/255000000000
+        - img [ref=e232]
+  - region "Notifications alt+T"
+  - alert [ref=e234]
