@@ -26,10 +26,6 @@
       "@/*": [
         "./*"
       ]
-      ,
-      "@backend/*": [
-        "mrk/admin_backend_bundle/backend/*"
-      ]
     }
   },
   "include": [
@@ -42,6 +38,7 @@
   "exclude": [
     "node_modules",
     "admin_backend_bundle",
-    "admin_frontend_remote_bundle"
+    "admin_frontend_remote_bundle",
+    "mrk"
   ]
 }
