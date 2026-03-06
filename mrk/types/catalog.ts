@@ -129,3 +129,12 @@ export type Category = {
   cover?: string
   createdAt?: string
 }
+
+export type CurrencyRate = {
+  base: string
+  target: string
+  rate: number
+  source?: string
+  updatedAt: string
+  pairId?: string
+}
