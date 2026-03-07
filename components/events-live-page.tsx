@@ -72,10 +72,10 @@ export function EventsLivePage({ initialEvents }: EventsLivePageProps) {
   }, [refreshEvents])
 
   return (
-    <section className="mx-auto max-w-6xl px-4 py-12 md:px-8">
-      <SiteBreadcrumbs items={[{ label: "Home", href: "/" }, { label: "Events" }]} className="mb-4" />
+    <section className="mx-auto max-w-7xl px-4 pb-10 pt-28 md:px-8 md:pb-12 md:pt-32">
+      <SiteBreadcrumbs items={[{ label: "HOME", href: "/" }, { label: "EVENTS" }]} className="mb-5" />
       <h1 className="font-serif text-4xl text-foreground">Events</h1>
-      <p className="mt-2 text-sm text-muted-foreground">Live updates from admin-published events.</p>
+      <p className="mt-2 text-muted-foreground">Live updates from admin-published events.</p>
 
       {events.length === 0 ? (
         <p className="mt-8 text-muted-foreground">No events published yet.</p>

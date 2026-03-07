@@ -47,18 +47,23 @@ function PaymentInner({ orderId }: { orderId: string }) {
 
   return (
     <section className="mx-auto max-w-4xl px-4 py-12">
-      <h1 className="font-serif text-4xl text-foreground">Payment</h1>
+      <h1 className="font-serif text-4xl text-foreground">Order Confirmed</h1>
       <div className="mt-6 rounded-xl border border-border bg-card p-6">
         <p className="text-sm text-muted-foreground">Order ID: {order.id}</p>
         <p className="mt-1 text-sm text-muted-foreground">Customer: {order.customer.fullName} ({order.customer.email})</p>
-        <p className="mt-1 text-sm text-muted-foreground">Method: {order.paymentMethod.replaceAll("_", " ")}</p>
-        {order.paymentChannel && <p className="mt-1 text-sm text-muted-foreground">Channel: {order.paymentChannel.replaceAll("_", " ")}</p>}
-        <p className="mt-3 text-xl font-semibold text-foreground">Amount: TZS {order.total.toLocaleString("en-US")}</p>
-        <p className="mt-3 text-sm text-muted-foreground">
-          After you complete payment using your selected method, continue below. Payment status is confirmed by admin verification.
-        </p>
+        <p className="mt-3 text-xl font-semibold text-foreground">Total: TZS {order.total.toLocaleString("en-US")}</p>
+        <div className="mt-4 rounded-xl border border-accent/50 bg-accent/10 px-4 py-4">
+          <p className="text-sm font-medium text-foreground">Cash on Delivery</p>
+          <p className="mt-1 text-sm text-muted-foreground">
+            Your order has been placed successfully. Payment will be collected when your order arrives.
+            Our team will reach out to confirm your delivery details.
+          </p>
+          <p className="mt-2 text-xs text-muted-foreground italic">
+            For international orders, our team will contact you with the shipping cost before dispatch.
+          </p>
+        </div>
         <button onClick={continueAfterPayment} disabled={finishing} className="mt-6 rounded-full bg-primary px-8 py-3 text-sm font-medium text-primary-foreground">
-          {finishing ? "Continuing..." : "I Have Completed Payment"}
+          {finishing ? "Continuing..." : "View Order Confirmation"}
         </button>
       </div>
     </section>

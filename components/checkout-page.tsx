@@ -2,14 +2,13 @@
 
 import { useEffect, useMemo, useState } from "react"
 import { useRouter } from "next/navigation"
-import Image from "next/image"
-import { CheckCircle2, CreditCard, Smartphone, Landmark } from "lucide-react"
+import { CheckCircle2, Package } from "lucide-react"
 import { useCart } from "@/lib/cart-context"
 import { SiteFooter } from "@/components/site-footer"
 
 type PaymentOption = {
-  id: "visa_mastercard_amex" | "mpesa" | "airtel_money" | "mtn_momo" | "tigo_pesa_mixx" | "bank_transfer"
-  method: "card" | "mobile_money" | "bank_transfer"
+  id: "cash_on_delivery"
+  method: "cash_on_delivery"
   title: string
   note: string
   logos: string[]
@@ -23,21 +22,9 @@ type AppliedGiftCode = {
   currency: string
 }
 
-// TODO(payments-api): keep these as UI mock options until payment provider API keys + callback flow are wired.
 const paymentOptions: PaymentOption[] = [
-  { id: "visa_mastercard_amex", method: "card", title: "Visa / Mastercard / Amex", note: "Pay securely by card", logos: ["/payments/visa.PNG", "/payments/master.PNG"] },
-  { id: "mpesa", method: "mobile_money", title: "M-Pesa", note: "Mobile money checkout", logos: ["/payments/voda.png"] },
-  { id: "airtel_money", method: "mobile_money", title: "Airtel Money", note: "Mobile money checkout", logos: ["/payments/airtel.PNG"] },
-  { id: "mtn_momo", method: "mobile_money", title: "MTN MoMo", note: "Mobile money checkout", logos: ["/payments/halotel.PNG", "/payments/Zantel.PNG"] },
-  { id: "tigo_pesa_mixx", method: "mobile_money", title: "Tigo Pesa / Mixx", note: "Mobile money checkout", logos: ["/payments/Tpesa.PNG", "/payments/mixx.PNG"] },
-  { id: "bank_transfer", method: "bank_transfer", title: "Bank Transfer", note: "Direct bank settlement", logos: [] },
+  { id: "cash_on_delivery", method: "cash_on_delivery", title: "Cash on Delivery", note: "Pay when your order arrives", logos: [] },
 ]
-
-function iconForMethod(method: PaymentOption["method"]) {
-  if (method === "card") return <CreditCard className="h-4 w-4" />
-  if (method === "mobile_money") return <Smartphone className="h-4 w-4" />
-  return <Landmark className="h-4 w-4" />
-}
 
 function CheckoutInner() {
   const router = useRouter()
@@ -63,14 +50,15 @@ function CheckoutInner() {
     shippingCity: "",
     shippingCountry: "Tanzania",
     notes: "",
-    paymentChannel: "mpesa" as PaymentOption["id"],
+    paymentChannel: "cash_on_delivery" as PaymentOption["id"],
   })
 
   // TODO(shipping-api): replace this flat mock rule with live shipping quotes once courier API keys are ready.
   const shipping = totalPrice >= 250000 ? 0 : 10000
   const discountAmount = appliedGiftCode?.discountAmount || 0
   const total = Math.max(0, totalPrice + shipping - discountAmount)
-  const selectedOption = paymentOptions.find((option) => option.id === form.paymentChannel) || paymentOptions[0]
+  const selectedOption = paymentOptions[0]
+  const isInternational = (shippingDetails.country || "").trim().toLowerCase() !== "tanzania"
 
   const shippingDetails = useMemo(
     () =>
@@ -218,86 +206,67 @@ function CheckoutInner() {
                 Same as billing
               </label>
             </div>
-            {!sameAsBilling && (
+            {(!sameAsBilling || isInternational) && (
               <div className="mt-4 grid gap-3 md:grid-cols-2">
                 <input required={!sameAsBilling} placeholder="Recipient name" value={form.shippingRecipientName} onChange={(e) => setForm({ ...form, shippingRecipientName: e.target.value })} className="rounded-lg border border-border bg-background px-3 py-2" />
                 <input required={!sameAsBilling} placeholder="Phone" value={form.shippingPhone} onChange={(e) => setForm({ ...form, shippingPhone: e.target.value })} className="rounded-lg border border-border bg-background px-3 py-2" />
                 <input required={!sameAsBilling} placeholder="City" value={form.shippingCity} onChange={(e) => setForm({ ...form, shippingCity: e.target.value })} className="rounded-lg border border-border bg-background px-3 py-2" />
                 <input required={!sameAsBilling} placeholder="Country" value={form.shippingCountry} onChange={(e) => setForm({ ...form, shippingCountry: e.target.value })} className="rounded-lg border border-border bg-background px-3 py-2" />
                 <input required={!sameAsBilling} placeholder="Address" value={form.shippingAddress} onChange={(e) => setForm({ ...form, shippingAddress: e.target.value })} className="md:col-span-2 rounded-lg border border-border bg-background px-3 py-2" />
+                {isInternational && (
+                  <p className="md:col-span-2 rounded-lg bg-accent/10 border border-accent/40 px-3 py-2 text-xs text-muted-foreground">
+                    International order detected — our team will contact you with the shipping cost before processing your order.
+                  </p>
+                )}
               </div>
             )}
           </article>
 
           <article className="rounded-2xl border border-border bg-card p-5 md:p-6">
             <h2 className="font-serif text-2xl text-foreground">Payment method</h2>
-            <p className="mt-2 text-sm text-muted-foreground">Choose a Pesapal-supported method.</p>
-            <div className="mt-4 grid gap-2">
-              {paymentOptions.map((option) => (
-                <label
-                  key={option.id}
-                  className={`flex cursor-pointer items-center justify-between rounded-xl border px-4 py-3 ${
-                    form.paymentChannel === option.id ? "border-foreground bg-foreground/5" : "border-border"
-                  }`}
-                >
-                  <div className="flex items-center gap-3">
-                    <input
-                      type="radio"
-                      name="paymentChannel"
-                      checked={form.paymentChannel === option.id}
-                      onChange={() => setForm({ ...form, paymentChannel: option.id })}
-                    />
-                    <span className="flex items-center gap-2 text-sm text-foreground">
-                      {iconForMethod(option.method)}
-                      {option.title}
-                    </span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    {option.logos.length > 0 &&
-                      option.logos.map((logoSrc) => (
-                        <Image
-                          key={`${option.id}-${logoSrc}`}
-                          src={logoSrc}
-                          alt={`${option.title} placeholder`}
-                          width={40}
-                          height={24}
-                          unoptimized
-                          className="h-6 w-10 rounded border border-border bg-background object-contain p-1"
-                        />
-                      ))}
-                    {option.logos.length === 0 && (
-                      <span className="rounded-md border border-border bg-background px-2 py-1 text-[10px] uppercase tracking-wide text-muted-foreground">
-                        Bank
-                      </span>
-                    )}
-                    <span className="text-xs text-muted-foreground">{option.note}</span>
-                  </div>
-                </label>
-              ))}
+            <p className="mt-2 text-sm text-muted-foreground">Your order will be confirmed and payment collected upon delivery.</p>
+            <div className="mt-4 flex items-center gap-3 rounded-xl border border-foreground bg-foreground/5 px-4 py-3">
+              <Package className="h-5 w-5 text-foreground" />
+              <div>
+                <p className="text-sm font-medium text-foreground">Cash on Delivery</p>
+                <p className="text-xs text-muted-foreground">Pay when your order arrives at your door</p>
+              </div>
             </div>
           </article>
 
           <article className="rounded-2xl border border-border bg-card p-5 md:p-6">
-            <h2 className="font-serif text-2xl text-foreground">Shipping price mockup</h2>
-            <p className="mt-2 text-sm text-muted-foreground">Example rates to preview delivery pricing logic.</p>
-            <div className="mt-4 grid gap-3 md:grid-cols-3">
-              <div className="rounded-xl border border-border bg-background p-3">
-                <p className="text-xs uppercase tracking-wide text-muted-foreground">Dar es Salaam</p>
-                <p className="mt-2 text-lg font-semibold text-foreground">TZS 10,000</p>
-                <p className="text-xs text-muted-foreground">Same/next day zone</p>
-              </div>
-              <div className="rounded-xl border border-border bg-background p-3">
-                <p className="text-xs uppercase tracking-wide text-muted-foreground">Other cities</p>
-                <p className="mt-2 text-lg font-semibold text-foreground">TZS 15,000</p>
-                <p className="text-xs text-muted-foreground">1-3 business days</p>
-              </div>
-              <div className="rounded-xl border border-border bg-background p-3">
-                <p className="text-xs uppercase tracking-wide text-muted-foreground">Express</p>
-                <p className="mt-2 text-lg font-semibold text-foreground">TZS 25,000</p>
-                <p className="text-xs text-muted-foreground">Priority handling</p>
-              </div>
-            </div>
-            <p className="mt-3 text-xs text-muted-foreground">Current live cart rule: free shipping from TZS 250,000; otherwise TZS 10,000.</p>
+            <h2 className="font-serif text-2xl text-foreground">Shipping</h2>
+            {isInternational ? (
+              <>
+                <p className="mt-2 text-sm text-muted-foreground">You have entered an international destination. Please make sure all your shipping details above are filled in correctly.</p>
+                <div className="mt-4 rounded-xl border border-accent/50 bg-accent/10 px-4 py-3">
+                  <p className="text-sm font-medium text-foreground">International shipping — cost to be confirmed</p>
+                  <p className="mt-1 text-xs text-muted-foreground">Our team will review your order and reach out to you via email or phone with the exact international shipping cost before your order is processed and dispatched.</p>
+                </div>
+              </>
+            ) : (
+              <>
+                <p className="mt-2 text-sm text-muted-foreground">Domestic delivery rates for Tanzania.</p>
+                <div className="mt-4 grid gap-3 md:grid-cols-3">
+                  <div className="rounded-xl border border-border bg-background p-3">
+                    <p className="text-xs uppercase tracking-wide text-muted-foreground">Dar es Salaam</p>
+                    <p className="mt-2 text-lg font-semibold text-foreground">TZS 10,000</p>
+                    <p className="text-xs text-muted-foreground">Same/next day zone</p>
+                  </div>
+                  <div className="rounded-xl border border-border bg-background p-3">
+                    <p className="text-xs uppercase tracking-wide text-muted-foreground">Other cities</p>
+                    <p className="mt-2 text-lg font-semibold text-foreground">TZS 15,000</p>
+                    <p className="text-xs text-muted-foreground">1–3 business days</p>
+                  </div>
+                  <div className="rounded-xl border border-border bg-background p-3">
+                    <p className="text-xs uppercase tracking-wide text-muted-foreground">Express</p>
+                    <p className="mt-2 text-lg font-semibold text-foreground">TZS 25,000</p>
+                    <p className="text-xs text-muted-foreground">Priority handling</p>
+                  </div>
+                </div>
+                <p className="mt-3 text-xs text-muted-foreground">Free shipping on orders from TZS 250,000.</p>
+              </>
+            )}
           </article>
 
           <article className="rounded-2xl border border-border bg-card p-5 md:p-6">
