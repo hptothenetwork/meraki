@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server"
 import { getPesapalTransactionStatus } from "@/backend/integrations/pesapal"
 import { markOrderPaid, markOrderPaymentFailed } from "@/backend/db/orders"
+import { checkRateLimit } from "@/app/api/_utils/rate-limit"
 
 export const runtime = "nodejs"
 export const dynamic = "force-dynamic"
@@ -11,6 +12,11 @@ export const dynamic = "force-dynamic"
  * Must respond with: { orderNotificationType, orderTrackingId, orderMerchantReference, status }
  */
 export async function GET(req: NextRequest) {
+  const rateLimit = checkRateLimit(req, { key: "pesapal:ipn", max: 60, windowMs: 60_000 })
+  if (!rateLimit.allowed) {
+    return NextResponse.json({ status: "500" }, { status: 429 })
+  }
+
   const { searchParams } = new URL(req.url)
   const orderTrackingId = searchParams.get("orderTrackingId") ?? ""
   const orderMerchantReference = searchParams.get("orderMerchantReference") ?? ""

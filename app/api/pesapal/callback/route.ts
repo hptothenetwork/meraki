@@ -22,7 +22,11 @@ export async function GET(req: NextRequest) {
     const status = await getPesapalTransactionStatus(orderTrackingId)
 
     if (status.statusCode === 1) {
-      // Completed
+      // Completed — cross-verify PesaPal's merchantReference matches our order ID
+      if (status.merchantReference && status.merchantReference !== merchantReference) {
+        console.error(`[pesapal/callback] merchantReference mismatch: expected ${merchantReference}, got ${status.merchantReference}`)
+        return NextResponse.redirect(new URL(`/checkout/payment?orderId=${encodeURIComponent(merchantReference)}&pesapal=error`, req.url))
+      }
       await markOrderPaid(merchantReference, {
         transactionId: orderTrackingId,
         confirmationCode: status.confirmationCode,
