@@ -1,6 +1,7 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
+  basePath: "/admin",
   poweredByHeader: false,
   turbopack: {
     root: process.cwd(),
