@@ -1,12 +1,10 @@
 import Image from "next/image"
 import Link from "next/link"
-import { redirect } from "next/navigation"
 
+// This page is only shown if the /admin proxy rewrite is not configured.
+// When ADMIN_APP_URL is set in next.config.mjs the rewrite intercepts /admin
+// before this component ever renders.
 export default function AdminRedirectPage() {
-  const url = process.env.NEXT_PUBLIC_ADMIN_APP_URL || process.env.ADMIN_APP_URL
-  if (url && /^https?:\/\//.test(url)) {
-    redirect(url)
-  }
   return (
     <main className="min-h-screen bg-background flex items-center justify-center px-4">
       <div className="text-center">
