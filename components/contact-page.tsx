@@ -124,7 +124,6 @@ export function ContactPage({ siteAssets, mode = "contact" }: { siteAssets: Site
     <main className="min-h-screen bg-background">
       <Navbar
         compact={useMinimalTopBar}
-        hideBrandLogo={useMinimalTopBar}
         hideSearchIcon={useMinimalTopBar}
         hideCartIcon={useMinimalTopBar}
         hideAccountIcon={useMinimalTopBar}

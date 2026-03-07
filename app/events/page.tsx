@@ -31,7 +31,6 @@ export default async function EventsPage() {
   return (
     <main className="min-h-screen bg-background">
       <Navbar
-        hideBrandLogo
         hideSearchIcon
         hideCartIcon
         hideAccountIcon
