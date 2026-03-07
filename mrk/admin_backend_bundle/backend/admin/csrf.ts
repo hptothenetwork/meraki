@@ -1,8 +1,14 @@
 // Hosts that are allowed to POST to admin APIs.
 // Includes the admin app itself plus any configured proxy/storefront origin
 // (e.g. when the storefront proxies /admin/* → admin app via Next.js rewrites).
+// Production storefront hosts always trusted as proxy origins
+const PRODUCTION_STOREFRONT_HOSTS = [
+  "meraki-amber-nine.vercel.app",
+  "meraki.vercel.app",
+]
+
 function allowedHosts(): Set<string> {
-  const hosts = new Set<string>()
+  const hosts = new Set<string>(PRODUCTION_STOREFRONT_HOSTS)
   // Admin app's own origin
   const baseUrl = process.env.NEXT_PUBLIC_BASE_URL
   if (baseUrl) {
