@@ -3,7 +3,7 @@
 // Admin app URL — e.g. https://admin.merakithebrand.com in production,
 // or http://localhost:4000 when running both apps locally.
 // When not set, /admin falls through to the built-in stub page.
-const ADMIN_URL = (process.env.NEXT_PUBLIC_ADMIN_APP_URL || process.env.ADMIN_APP_URL || "").replace(/\/$/, "")
+const ADMIN_URL = (process.env.NEXT_PUBLIC_ADMIN_APP_URL || process.env.ADMIN_APP_URL || "https://meraki-admin.vercel.app").replace(/\/$/, "")
 
 const nextConfig = {
   images: {
