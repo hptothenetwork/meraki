@@ -27,7 +27,7 @@ pnpm-debug.log*
 package-lock.json
 pnpm-lock.yaml
 /.cache
-public/uploads/
+# public/uploads/ - committed to git for production image serving
 *.local
 *.log
 mrk/mrk/mrk/
