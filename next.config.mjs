@@ -34,19 +34,19 @@ const nextConfig = {
       afterFiles: [
         {
           source: "/api/admin/:path*",
-          destination: `${ADMIN_URL}/api/admin/:path*`,
+          destination: `${ADMIN_URL}/admin/api/admin/:path*`,
         },
         {
           source: "/api/stock-notifications",
-          destination: `${ADMIN_URL}/api/stock-notifications`,
+          destination: `${ADMIN_URL}/admin/api/stock-notifications`,
         },
         {
           source: "/api/stock-notifications/:path*",
-          destination: `${ADMIN_URL}/api/stock-notifications/:path*`,
+          destination: `${ADMIN_URL}/admin/api/stock-notifications/:path*`,
         },
         {
           source: "/api/proxy-image/:path*",
-          destination: `${ADMIN_URL}/api/proxy-image/:path*`,
+          destination: `${ADMIN_URL}/admin/api/proxy-image/:path*`,
         },
       ],
 
