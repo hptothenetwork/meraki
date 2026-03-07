@@ -6,38 +6,24 @@
  *   NEXT_PUBLIC_EMAILJS_SERVICE_ID   — EmailJS service ID (e.g. service_titusac)
  *   EMAILJS_ORDER_TEMPLATE_ID        — template ID for order confirmation
  *   NEXT_PUBLIC_EMAILJS_PUBLIC_KEY   — EmailJS public key
+ *
+ * Template variable names (match your EmailJS template exactly):
+ *   {{order_id}}           — order document ID
+ *   {{email}}              — customer email (shown in footer "sent to …")
+ *   {{to_email}}           — used by EmailJS to route delivery (same value as {{email}})
+ *   {{#orders}}            — Handlebars loop over items array
+ *     {{image_url}}        —   product image URL
+ *     {{name}}             —   product name (+ size appended when present)
+ *     {{units}}            —   quantity
+ *     {{price}}            —   line total, formatted as "TZS X,XXX"
+ *   {{/orders}}
+ *   {{cost.shipping}}      — shipping cost
+ *   {{cost.tax}}           — tax (always "TZS 0" — no tax collected)
+ *   {{cost.total}}         — order total
  */
 
 function fmtTzs(amount: number): string {
   return `TZS ${amount.toLocaleString("en-US")}`
-}
-
-function renderItemRows(
-  items: Array<{ name: string; image?: string; size?: string; quantity: number; priceTzs: number }>,
-): string {
-  return items
-    .map(
-      (item) => `
-      <tr>
-        <td style="padding:10px 0;border-bottom:1px solid #e8e0d6;vertical-align:top;width:64px">
-          ${
-            item.image
-              ? `<img src="${item.image}" alt="${item.name}" width="60" height="72"
-                   style="object-fit:cover;border-radius:4px;display:block" />`
-              : `<div style="width:60px;height:72px;background:#f0ebe3;border-radius:4px"></div>`
-          }
-        </td>
-        <td style="padding:10px 12px;border-bottom:1px solid #e8e0d6;vertical-align:top">
-          <div style="font-weight:600;color:#1a1a1a;font-size:14px">${item.name}</div>
-          ${item.size ? `<div style="color:#888;font-size:13px;margin-top:2px">Size: ${item.size}</div>` : ""}
-          <div style="color:#888;font-size:13px;margin-top:2px">Qty: ${item.quantity}</div>
-        </td>
-        <td style="padding:10px 0;border-bottom:1px solid #e8e0d6;vertical-align:top;text-align:right;white-space:nowrap;font-size:14px;color:#1a1a1a">
-          ${fmtTzs(item.priceTzs * item.quantity)}
-        </td>
-      </tr>`,
-    )
-    .join("")
 }
 
 export async function sendOrderConfirmationEmail(params: {
@@ -63,37 +49,32 @@ export async function sendOrderConfirmationEmail(params: {
     return
   }
 
-  const siteUrl = params.siteUrl || process.env.NEXT_PUBLIC_SITE_URL || "https://merakithebrand.store"
-  const trackUrl = `${siteUrl}/track-order?orderId=${params.orderId}`
+  // Build the `orders` array that EmailJS iterates with {{#orders}}…{{/orders}}
+  const orders = params.items.map((item) => ({
+    image_url: item.image || "",
+    name: item.size ? `${item.name} (${item.size})` : item.name,
+    units: item.quantity,
+    price: fmtTzs(item.priceTzs * item.quantity),
+  }))
 
-  const paymentLabel =
-    params.paymentChannel === "pesapal"
-      ? "PesaPal (Card / Mobile Money)"
-      : params.paymentChannel === "cash_on_delivery"
-        ? "Cash on Delivery"
-        : params.paymentChannel || "—"
-
-  const orderDateStr = params.orderDate.toLocaleDateString("en-GB", {
-    day: "numeric",
-    month: "long",
-    year: "numeric",
-  })
-
-  const templateParams: Record<string, string> = {
-    to_email: params.toEmail,
-    customer_name: params.customerName,
-    order_id: params.orderId,
-    order_date: orderDateStr,
-    items_html: renderItemRows(params.items),
-    subtotal: fmtTzs(params.subtotal),
+  // Nested `cost` object accessed as {{cost.shipping}}, {{cost.tax}}, {{cost.total}}
+  const cost = {
     shipping: params.shipping === 0 ? "FREE" : fmtTzs(params.shipping),
-    discount:
-      params.discountAmount && params.discountAmount > 0 ? `- ${fmtTzs(params.discountAmount)}` : "",
+    tax: "TZS 0",
     total: fmtTzs(params.total),
-    payment_method: paymentLabel,
-    shipping_address: params.shippingAddress,
-    track_url: trackUrl,
-    site_url: siteUrl,
+  }
+
+  const templateParams = {
+    // Routing / identification
+    to_email: params.toEmail,   // used by EmailJS to deliver the email
+    email: params.toEmail,      // shown in template footer "sent to {{email}}"
+    order_id: params.orderId,
+
+    // Items loop
+    orders,
+
+    // Totals
+    cost,
   }
 
   const res = await fetch("https://api.emailjs.com/api/v1.0/email/send", {
