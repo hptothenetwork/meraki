@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<!--
+  =====================================================================
+  MERAKI — Order Confirmation Email Template
+  =====================================================================
+
+  HOW TO USE:
+  1. Go to https://dashboard.emailjs.com → Email Templates → Create New
+  2. Set Template Name: "Order Confirmation"
+  3. In the "Content" / HTML tab paste EVERYTHING below the <body> tag
+     (or paste the whole file — EmailJS will strip the outer shell).
+  4. Set "To Email" field to: {{to_email}}
+  5. Set "Subject" field to: Your Meraki Order #{{order_id}} is confirmed ✔
+  6. Save and note the Template ID (e.g. template_xxxxxxx).
+  7. Add to .env.local (and Vercel env):
+       EMAILJS_ORDER_TEMPLATE_ID=template_xxxxxxx
+       NEXT_PUBLIC_EMAILJS_SERVICE_ID=service_titusac
+       NEXT_PUBLIC_EMAILJS_PUBLIC_KEY=<your public key from EmailJS dashboard>
+
+  TEMPLATE VARIABLES (injected by the server):
+    {{to_email}}         — customer email address (also used in "To" field)
+    {{customer_name}}    — customer full name
+    {{order_id}}         — Firestore order document ID
+    {{order_date}}       — human-readable date  e.g. "12 July 2025"
+    {{items_html}}       — pre-rendered <tr> rows for each ordered item
+    {{subtotal}}         — e.g. "TZS 45,000"
+    {{shipping}}         — e.g. "TZS 10,000" or "FREE"
+    {{discount}}         — e.g. "- TZS 5,000" (empty string when no discount)
+    {{total}}            — e.g. "TZS 50,000"
+    {{payment_method}}   — "Cash on Delivery" | "PesaPal (Card / Mobile Money)"
+    {{shipping_address}} — full address, city, country — comma-separated
+    {{track_url}}        — https://merakithebrand.store/track-order?orderId=...
+    {{site_url}}         — https://merakithebrand.store
+  =====================================================================
+-->
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Your Meraki Order is Confirmed</title>
+</head>
+<body style="margin:0;padding:0;background-color:#f5f0eb;font-family:'Georgia',serif;color:#1a1a1a;">
+
+  <!--  Preheader (hidden preview text)  -->
+  <div style="display:none;max-height:0;overflow:hidden;font-size:1px;line-height:1px;color:#f5f0eb;">
+    Order #{{order_id}} confirmed — thank you for shopping with Meraki.
+    &zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;
+  </div>
+
+  <!--  Wrapper  -->
+  <table width="100%" cellpadding="0" cellspacing="0" border="0"
+         style="background-color:#f5f0eb;padding:32px 0;">
+    <tr>
+      <td align="center">
+
+        <!--  Card  -->
+        <table width="600" cellpadding="0" cellspacing="0" border="0"
+               style="max-width:600px;width:100%;background:#ffffff;border-radius:12px;overflow:hidden;box-shadow:0 2px 16px rgba(0,0,0,0.07);">
+
+          <!-- ── HEADER ── -->
+          <tr>
+            <td style="background:#1a1a1a;padding:32px 40px;text-align:center;">
+              <!-- Logo word-mark (replace src with your hosted logo URL) -->
+              <img src="{{site_url}}/logo/meraki-logo-light.png"
+                   alt="MERAKI"
+                   width="120"
+                   style="display:block;margin:0 auto;max-height:40px;object-fit:contain;"
+                   onerror="this.style.display='none'" />
+              <!-- Fallback text logo if image not found -->
+              <p style="margin:12px 0 0;letter-spacing:0.25em;font-size:11px;color:#c4a97d;text-transform:uppercase;font-family:Arial,sans-serif;">
+                The Brand
+              </p>
+            </td>
+          </tr>
+
+          <!-- ── HERO STRIP ── -->
+          <tr>
+            <td style="background:#c4a97d;padding:18px 40px;text-align:center;">
+              <p style="margin:0;font-size:13px;font-family:Arial,sans-serif;color:#1a1a1a;letter-spacing:0.12em;text-transform:uppercase;font-weight:600;">
+                Order Confirmed
+              </p>
+            </td>
+          </tr>
+
+          <!-- ── GREETING ── -->
+          <tr>
+            <td style="padding:36px 40px 0;">
+              <h1 style="margin:0 0 12px;font-size:26px;font-weight:normal;color:#1a1a1a;line-height:1.3;">
+                Thank you, {{customer_name}}.
+              </h1>
+              <p style="margin:0;font-size:15px;color:#555;line-height:1.7;font-family:Arial,sans-serif;">
+                We've received your order and we're getting it ready for you.
+                You'll receive another update once it ships.
+              </p>
+            </td>
+          </tr>
+
+          <!-- ── ORDER META ── -->
+          <tr>
+            <td style="padding:24px 40px 0;">
+              <table width="100%" cellpadding="0" cellspacing="0" border="0"
+                     style="background:#f9f6f2;border-radius:8px;padding:16px 20px;">
+                <tr>
+                  <td style="font-family:Arial,sans-serif;font-size:13px;color:#888;padding:4px 0;width:50%;">
+                    Order number
+                  </td>
+                  <td style="font-family:Arial,sans-serif;font-size:13px;color:#1a1a1a;font-weight:600;padding:4px 0;text-align:right;">
+                    #{{order_id}}
+                  </td>
+                </tr>
+                <tr>
+                  <td style="font-family:Arial,sans-serif;font-size:13px;color:#888;padding:4px 0;">
+                    Order date
+                  </td>
+                  <td style="font-family:Arial,sans-serif;font-size:13px;color:#1a1a1a;padding:4px 0;text-align:right;">
+                    {{order_date}}
+                  </td>
+                </tr>
+                <tr>
+                  <td style="font-family:Arial,sans-serif;font-size:13px;color:#888;padding:4px 0;">
+                    Payment
+                  </td>
+                  <td style="font-family:Arial,sans-serif;font-size:13px;color:#1a1a1a;padding:4px 0;text-align:right;">
+                    {{payment_method}}
+                  </td>
+                </tr>
+                <tr>
+                  <td style="font-family:Arial,sans-serif;font-size:13px;color:#888;padding:4px 0;">
+                    Ships to
+                  </td>
+                  <td style="font-family:Arial,sans-serif;font-size:13px;color:#1a1a1a;padding:4px 0;text-align:right;">
+                    {{shipping_address}}
+                  </td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+
+          <!-- ── ITEMS HEADER ── -->
+          <tr>
+            <td style="padding:28px 40px 0;">
+              <p style="margin:0 0 8px;font-size:11px;letter-spacing:0.15em;text-transform:uppercase;color:#888;font-family:Arial,sans-serif;">
+                Items Ordered
+              </p>
+              <table width="100%" cellpadding="0" cellspacing="0" border="0">
+                <!-- items_html is pre-rendered <tr> blocks from the server -->
+                {{items_html}}
+              </table>
+            </td>
+          </tr>
+
+          <!-- ── ORDER TOTALS ── -->
+          <tr>
+            <td style="padding:20px 40px 0;">
+              <table width="100%" cellpadding="0" cellspacing="0" border="0">
+                <tr>
+                  <td style="font-family:Arial,sans-serif;font-size:14px;color:#555;padding:5px 0;">Subtotal</td>
+                  <td style="font-family:Arial,sans-serif;font-size:14px;color:#1a1a1a;text-align:right;padding:5px 0;">{{subtotal}}</td>
+                </tr>
+                <tr>
+                  <td style="font-family:Arial,sans-serif;font-size:14px;color:#555;padding:5px 0;">Shipping</td>
+                  <td style="font-family:Arial,sans-serif;font-size:14px;color:#1a1a1a;text-align:right;padding:5px 0;">{{shipping}}</td>
+                </tr>
+                <!-- Discount row — server sends empty string when no discount, so this row is harmless either way -->
+                <tr>
+                  <td style="font-family:Arial,sans-serif;font-size:14px;color:#555;padding:5px 0;">Discount</td>
+                  <td style="font-family:Arial,sans-serif;font-size:14px;color:#c0392b;text-align:right;padding:5px 0;">{{discount}}</td>
+                </tr>
+                <tr>
+                  <td colspan="2"><hr style="border:none;border-top:1px solid #e8e0d6;margin:8px 0;" /></td>
+                </tr>
+                <tr>
+                  <td style="font-family:Arial,sans-serif;font-size:16px;font-weight:700;color:#1a1a1a;padding:5px 0;">Total</td>
+                  <td style="font-family:Arial,sans-serif;font-size:16px;font-weight:700;color:#1a1a1a;text-align:right;padding:5px 0;">{{total}}</td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+
+          <!-- ── COD NOTE ── -->
+          <tr>
+            <td style="padding:20px 40px 0;">
+              <table width="100%" cellpadding="0" cellspacing="0" border="0"
+                     style="background:#fdf8f0;border-left:3px solid #c4a97d;border-radius:0 6px 6px 0;padding:14px 16px;">
+                <tr>
+                  <td style="font-family:Arial,sans-serif;font-size:13px;color:#6b5a3e;line-height:1.6;">
+                    <strong>Cash on Delivery:</strong> Our team will contact you to confirm delivery details and collect payment upon arrival.
+                    For international orders, we will reach out separately to arrange shipping costs.
+                  </td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+
+          <!-- ── CTA BUTTON ── -->
+          <tr>
+            <td style="padding:32px 40px;text-align:center;">
+              <a href="{{track_url}}"
+                 style="display:inline-block;background:#1a1a1a;color:#ffffff;text-decoration:none;
+                        font-family:Arial,sans-serif;font-size:13px;letter-spacing:0.1em;
+                        text-transform:uppercase;padding:14px 36px;border-radius:50px;font-weight:600;">
+                Track Your Order
+              </a>
+            </td>
+          </tr>
+
+          <!-- ── DIVIDER ── -->
+          <tr>
+            <td style="padding:0 40px;">
+              <hr style="border:none;border-top:1px solid #e8e0d6;" />
+            </td>
+          </tr>
+
+          <!-- ── BRAND STORY ── -->
+          <tr>
+            <td style="padding:28px 40px;text-align:center;">
+              <p style="margin:0;font-size:14px;color:#888;line-height:1.8;font-family:Arial,sans-serif;max-width:420px;margin:0 auto;">
+                Meraki — crafted with soul, worn with intention.<br />
+                Every piece is made to be yours.
+              </p>
+              <p style="margin:20px 0 0;font-size:12px;color:#aaa;font-family:Arial,sans-serif;">
+                Questions? Reply to this email or visit
+                <a href="{{site_url}}/contact" style="color:#c4a97d;text-decoration:none;">our contact page</a>.
+              </p>
+            </td>
+          </tr>
+
+          <!-- ── FOOTER ── -->
+          <tr>
+            <td style="background:#1a1a1a;padding:20px 40px;text-align:center;border-radius:0 0 12px 12px;">
+              <p style="margin:0 0 6px;font-size:11px;letter-spacing:0.2em;text-transform:uppercase;color:#c4a97d;font-family:Arial,sans-serif;">
+                MERAKI THE BRAND
+              </p>
+              <p style="margin:0;font-size:11px;color:#666;font-family:Arial,sans-serif;">
+                &copy; 2025 Meraki. All rights reserved.
+              </p>
+              <p style="margin:8px 0 0;font-size:11px;color:#444;font-family:Arial,sans-serif;">
+                <a href="{{site_url}}" style="color:#888;text-decoration:none;">merakithebrand.store</a>
+              </p>
+            </td>
+          </tr>
+
+        </table>
+        <!-- end card -->
+
+      </td>
+    </tr>
+  </table>
+
+</body>
+</html>

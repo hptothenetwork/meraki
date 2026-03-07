@@ -4,6 +4,7 @@ import { createOrder, getOrder, hashOrderAccessToken, markOrderPaid } from "@/ba
 import { validateDiscountCode } from "@/backend/db/gift-codes"
 import { getProductsByIds } from "@/backend/db/products"
 import { checkRateLimit } from "@/app/api/_utils/rate-limit"
+import { sendOrderConfirmationEmail } from "@/backend/integrations/email"
 
 export const runtime = "nodejs"
 export const dynamic = "force-dynamic"
@@ -321,6 +322,29 @@ export async function POST(req: NextRequest) {
     paymentChannel: body.paymentChannel,
     accessTokenHash: hashOrderAccessToken(accessToken),
   })
+
+  // Fire confirmation email — non-blocking, errors are logged but don't fail the request
+  const shippingAddr = [
+    (order.shippingDetails?.address || order.customer?.address || "").trim(),
+    (order.shippingDetails?.city || order.customer?.city || "").trim(),
+    (order.shippingDetails?.country || order.customer?.country || "").trim(),
+  ]
+    .filter(Boolean)
+    .join(", ")
+
+  sendOrderConfirmationEmail({
+    toEmail: order.customer?.email || "",
+    customerName: order.customer?.fullName || "",
+    orderId: order.id,
+    orderDate: new Date(),
+    items: order.items as Array<{ name: string; image?: string; size?: string; quantity: number; priceTzs: number }>,
+    subtotal: order.subtotal,
+    shipping: order.shipping,
+    discountAmount: order.discountAmount,
+    total: order.total,
+    paymentChannel: order.paymentChannel,
+    shippingAddress: shippingAddr,
+  }).catch((err) => console.error("[email] order confirmation error:", err))
 
   const response = NextResponse.json({ order: sanitizeOrder(order) })
   response.cookies.set(CHECKOUT_SESSION_COOKIE, sessionId, {
