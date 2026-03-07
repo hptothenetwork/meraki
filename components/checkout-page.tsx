@@ -2,13 +2,14 @@
 
 import { useEffect, useMemo, useState } from "react"
 import { useRouter } from "next/navigation"
-import { CheckCircle2, Package } from "lucide-react"
+import Image from "next/image"
+import { CheckCircle2, Package, CreditCard } from "lucide-react"
 import { useCart } from "@/lib/cart-context"
 import { SiteFooter } from "@/components/site-footer"
 
 type PaymentOption = {
-  id: "cash_on_delivery"
-  method: "cash_on_delivery"
+  id: "cash_on_delivery" | "pesapal"
+  method: "cash_on_delivery" | "card"
   title: string
   note: string
   logos: string[]
@@ -23,7 +24,20 @@ type AppliedGiftCode = {
 }
 
 const paymentOptions: PaymentOption[] = [
-  { id: "cash_on_delivery", method: "cash_on_delivery", title: "Cash on Delivery", note: "Pay when your order arrives", logos: [] },
+  {
+    id: "cash_on_delivery",
+    method: "cash_on_delivery",
+    title: "Cash on Delivery",
+    note: "Pay when your order arrives",
+    logos: [],
+  },
+  {
+    id: "pesapal",
+    method: "card",
+    title: "Pay Online via PesaPal",
+    note: "Card, M-Pesa, Airtel Money, MTN MoMo & more",
+    logos: ["/payments/visa.PNG", "/payments/master.PNG", "/payments/voda.png", "/payments/airtel.PNG"],
+  },
 ]
 
 function CheckoutInner() {
@@ -57,8 +71,7 @@ function CheckoutInner() {
   const shipping = totalPrice >= 250000 ? 0 : 10000
   const discountAmount = appliedGiftCode?.discountAmount || 0
   const total = Math.max(0, totalPrice + shipping - discountAmount)
-  const selectedOption = paymentOptions[0]
-  const isInternational = (shippingDetails.country || "").trim().toLowerCase() !== "tanzania"
+  const selectedOption = paymentOptions.find((o) => o.id === form.paymentChannel) ?? paymentOptions[0]
 
   const shippingDetails = useMemo(
     () =>
@@ -79,6 +92,8 @@ function CheckoutInner() {
           },
     [form, sameAsBilling],
   )
+
+  const isInternational = (shippingDetails.country || "").trim().toLowerCase() !== "tanzania"
 
   const applyGiftCode = async (codeRaw?: string) => {
     const code = (codeRaw ?? giftCodeInput).trim().toUpperCase()
@@ -160,8 +175,8 @@ function CheckoutInner() {
         },
         shippingDetails,
         notes: form.notes,
-        paymentMethod: selectedOption.method,
-        paymentChannel: selectedOption.id,
+        paymentMethod: selectedOption.method === "cash_on_delivery" ? "cash_on_delivery" : "card",
+        paymentChannel: form.paymentChannel,
         items: items.map((item) => ({
           id: item.product.id,
           size: item.size,
@@ -224,14 +239,57 @@ function CheckoutInner() {
 
           <article className="rounded-2xl border border-border bg-card p-5 md:p-6">
             <h2 className="font-serif text-2xl text-foreground">Payment method</h2>
-            <p className="mt-2 text-sm text-muted-foreground">Your order will be confirmed and payment collected upon delivery.</p>
-            <div className="mt-4 flex items-center gap-3 rounded-xl border border-foreground bg-foreground/5 px-4 py-3">
-              <Package className="h-5 w-5 text-foreground" />
-              <div>
-                <p className="text-sm font-medium text-foreground">Cash on Delivery</p>
-                <p className="text-xs text-muted-foreground">Pay when your order arrives at your door</p>
-              </div>
+            <p className="mt-2 text-sm text-muted-foreground">Choose how you would like to pay.</p>
+            <div className="mt-4 grid gap-3">
+              {paymentOptions.map((option) => (
+                <label
+                  key={option.id}
+                  className={`flex cursor-pointer items-center justify-between rounded-xl border px-4 py-3 transition-colors ${
+                    form.paymentChannel === option.id ? "border-foreground bg-foreground/5" : "border-border"
+                  }`}
+                >
+                  <div className="flex items-center gap-3">
+                    <input
+                      type="radio"
+                      name="paymentChannel"
+                      checked={form.paymentChannel === option.id}
+                      onChange={() => setForm({ ...form, paymentChannel: option.id })}
+                    />
+                    <div className="flex items-center gap-2">
+                      {option.id === "cash_on_delivery" ? (
+                        <Package className="h-4 w-4 text-foreground" />
+                      ) : (
+                        <CreditCard className="h-4 w-4 text-foreground" />
+                      )}
+                      <div>
+                        <p className="text-sm font-medium text-foreground">{option.title}</p>
+                        <p className="text-xs text-muted-foreground">{option.note}</p>
+                      </div>
+                    </div>
+                  </div>
+                  {option.logos.length > 0 && (
+                    <div className="flex items-center gap-1">
+                      {option.logos.map((logoSrc) => (
+                        <Image
+                          key={logoSrc}
+                          src={logoSrc}
+                          alt="payment logo"
+                          width={36}
+                          height={22}
+                          unoptimized
+                          className="h-5 w-9 rounded border border-border bg-background object-contain p-0.5"
+                        />
+                      ))}
+                    </div>
+                  )}
+                </label>
+              ))}
             </div>
+            {form.paymentChannel === "pesapal" && (
+              <p className="mt-3 text-xs text-muted-foreground">
+                You will be redirected to PesaPal&apos;s secure payment page after placing your order.
+              </p>
+            )}
           </article>
 
           <article className="rounded-2xl border border-border bg-card p-5 md:p-6">

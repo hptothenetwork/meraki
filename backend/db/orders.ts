@@ -23,6 +23,8 @@ export type CheckoutOrder = {
     | "mtn_momo"
     | "tigo_pesa_mixx"
     | "bank_transfer"
+    | "pesapal"
+    | "cash_on_delivery"
   paymentStatus: "pending" | "paid" | "failed"
   paymentProvider?: string
   transactionId?: string
@@ -118,15 +120,38 @@ export async function getOrderBySession(sessionId: string): Promise<CheckoutOrde
   return snap.docs.map((doc) => doc.data() as CheckoutOrder)
 }
 
-export async function markOrderPaid(id: string) {
+export async function markOrderPaid(
+  id: string,
+  details?: { transactionId?: string; confirmationCode?: string; paymentMethod?: string },
+) {
   const now = new Date().toISOString()
   await db.collection(collectionName).doc(id).set(
     {
       status: "processing",
       paymentStatus: "paid",
+      paymentProvider: "pesapal",
+      ...(details?.transactionId ? { transactionId: details.transactionId } : {}),
+      ...(details?.confirmationCode ? { confirmationCode: details.confirmationCode } : {}),
+      ...(details?.paymentMethod ? { paymentMethodResolved: details.paymentMethod } : {}),
       paidAt: now,
       updatedAt: now,
     },
+    { merge: true },
+  )
+}
+
+export async function markOrderPaymentFailed(id: string) {
+  const now = new Date().toISOString()
+  await db.collection(collectionName).doc(id).set(
+    { paymentStatus: "failed", updatedAt: now },
+    { merge: true },
+  )
+}
+
+export async function savePesapalTracking(id: string, orderTrackingId: string) {
+  const now = new Date().toISOString()
+  await db.collection(collectionName).doc(id).set(
+    { transactionId: orderTrackingId, paymentProvider: "pesapal", updatedAt: now },
     { merge: true },
   )
 }

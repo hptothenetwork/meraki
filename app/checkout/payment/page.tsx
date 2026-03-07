@@ -9,7 +9,7 @@ export const metadata: Metadata = {
   },
 }
 
-export default async function CheckoutPayment({ searchParams }: { searchParams: Promise<{ orderId?: string }> }) {
+export default async function CheckoutPayment({ searchParams }: { searchParams: Promise<{ orderId?: string; pesapal?: string }> }) {
   const params = await searchParams
-  return <CheckoutPaymentPage orderId={params.orderId || ""} />
+  return <CheckoutPaymentPage orderId={params.orderId || ""} pesapalState={params.pesapal} />
 }

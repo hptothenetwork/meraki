@@ -188,7 +188,7 @@ export async function POST(req: NextRequest) {
     giftCode?: string
     items?: Array<{ id?: string; name?: string; image?: string; size?: string; quantity?: number }>
     paymentMethod?: "card" | "mobile_money" | "bank_transfer" | "cash_on_delivery"
-    paymentChannel?: "visa_mastercard_amex" | "mpesa" | "airtel_money" | "mtn_momo" | "tigo_pesa_mixx" | "bank_transfer"
+    paymentChannel?: "visa_mastercard_amex" | "mpesa" | "airtel_money" | "mtn_momo" | "tigo_pesa_mixx" | "bank_transfer" | "pesapal" | "cash_on_delivery"
   }
 
   const requestedItems = normalizeRequestItems(body.items)
