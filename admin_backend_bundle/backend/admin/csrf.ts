@@ -5,6 +5,7 @@
 const PRODUCTION_STOREFRONT_HOSTS = [
   "meraki-amber-nine.vercel.app",
   "meraki.vercel.app",
+  "admin-meraki-amber-nine.vercel.app",
 ]
 
 function allowedHosts(): Set<string> {
