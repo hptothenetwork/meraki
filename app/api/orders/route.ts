@@ -187,9 +187,28 @@ export async function POST(req: NextRequest) {
     }
     notes?: string
     giftCode?: string
+    captchaToken?: string
     items?: Array<{ id?: string; name?: string; image?: string; size?: string; quantity?: number }>
     paymentMethod?: "card" | "mobile_money" | "bank_transfer" | "cash_on_delivery"
     paymentChannel?: "visa_mastercard_amex" | "mpesa" | "airtel_money" | "mtn_momo" | "tigo_pesa_mixx" | "bank_transfer" | "pesapal" | "cash_on_delivery"
+  }
+
+  // Server-side reCAPTCHA verification
+  const recaptchaSecret = process.env.RECAPTCHA_SECRET_KEY
+  if (recaptchaSecret) {
+    const token = body.captchaToken
+    if (!token) {
+      return NextResponse.json({ error: "Captcha verification required." }, { status: 400 })
+    }
+    const verifyRes = await fetch("https://www.google.com/recaptcha/api/siteverify", {
+      method: "POST",
+      headers: { "Content-Type": "application/x-www-form-urlencoded" },
+      body: `secret=${recaptchaSecret}&response=${token}`,
+    })
+    const verifyData = (await verifyRes.json().catch(() => ({}))) as { success?: boolean; score?: number }
+    if (!verifyData.success) {
+      return NextResponse.json({ error: "Captcha verification failed. Please try again." }, { status: 400 })
+    }
   }
 
   const requestedItems = normalizeRequestItems(body.items)

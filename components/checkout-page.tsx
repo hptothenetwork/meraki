@@ -1,11 +1,12 @@
 "use client"
 
-import { useEffect, useMemo, useState } from "react"
+import { useEffect, useMemo, useRef, useState } from "react"
 import { useRouter } from "next/navigation"
 import Image from "next/image"
 import { CheckCircle2, Package, CreditCard } from "lucide-react"
 import { useCart } from "@/lib/cart-context"
 import { SiteFooter } from "@/components/site-footer"
+import ReCAPTCHA from "react-google-recaptcha"
 
 type PaymentOption = {
   id: "cash_on_delivery" | "pesapal"
@@ -47,6 +48,9 @@ function CheckoutInner() {
   const [submitError, setSubmitError] = useState("")
   const [sameAsBilling, setSameAsBilling] = useState(true)
   const [confirmed, setConfirmed] = useState(false)
+  const [captchaToken, setCaptchaToken] = useState("")
+  const captchaRef = useRef<ReCAPTCHA | null>(null)
+  const recaptchaSiteKey = process.env.NEXT_PUBLIC_RECAPTCHA_SITE_KEY || ""
   const [giftCodeInput, setGiftCodeInput] = useState("")
   const [appliedGiftCode, setAppliedGiftCode] = useState<AppliedGiftCode | null>(null)
   const [giftCodeError, setGiftCodeError] = useState("")
@@ -151,6 +155,11 @@ function CheckoutInner() {
     e.preventDefault()
     if (items.length === 0 || !confirmed) return
 
+    if (recaptchaSiteKey && !captchaToken) {
+      setSubmitError("Please complete the captcha verification.")
+      return
+    }
+
     setSubmitting(true)
     setSubmitError("")
     // TODO(payments-api): this only creates an order draft. Real payment intent/session creation should happen here.
@@ -184,12 +193,15 @@ function CheckoutInner() {
           quantity: item.quantity,
         })),
         giftCode: appliedGiftCode?.code,
+        captchaToken,
       }),
     })
     const payload = (await res.json().catch(() => ({}))) as { error?: string; order?: { id: string } }
     setSubmitting(false)
     if (!res.ok || !payload.order?.id) {
       setSubmitError(payload.error || "Failed to create order. Please review checkout details.")
+      captchaRef.current?.reset()
+      setCaptchaToken("")
       return
     }
 
@@ -352,8 +364,17 @@ function CheckoutInner() {
               <input type="checkbox" checked={confirmed} onChange={(e) => setConfirmed(e.target.checked)} />
               I confirm the billing and shipping details are correct and I am ready to complete this order.
             </label>
+            {recaptchaSiteKey && (
+              <div className="mt-4">
+                <ReCAPTCHA
+                  ref={captchaRef}
+                  sitekey={recaptchaSiteKey}
+                  onChange={(token) => setCaptchaToken(token || "")}
+                />
+              </div>
+            )}
             <button
-              disabled={submitting || items.length === 0 || !confirmed}
+              disabled={submitting || items.length === 0 || !confirmed || (!!recaptchaSiteKey && !captchaToken)}
               className="mt-5 w-full rounded-full bg-primary px-6 py-3 text-sm font-medium text-primary-foreground disabled:opacity-60"
             >
               {submitting ? "Creating order..." : "Complete order"}
