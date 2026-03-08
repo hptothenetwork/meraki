@@ -2,14 +2,17 @@ import { NextRequest, NextResponse } from "next/server";
 import { createAdminSessionCookie } from "@backend/admin/auth";
 import { verifyPassword } from "@backend/admin/passwordStore";
 import { assertSameOrigin } from "@backend/admin/csrf";
-import { getRequestIdentifier, strictRateLimit } from "@/lib/rateLimit";
+import { getRequestIdentifier, distributedRateLimit } from "@/lib/rateLimit";
 
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
 
 export async function POST(req: NextRequest) {
   const identifier = getRequestIdentifier(req);
-  const rateLimitResult = strictRateLimit(identifier);
+
+  // Distributed (Firestore-backed) rate limit: 5 attempts per 15 minutes per IP.
+  // Works across all Vercel serverless instances — no bypass via multiple containers.
+  const rateLimitResult = await distributedRateLimit("admin-login", identifier, 5, 15 * 60 * 1000);
   if (!rateLimitResult.allowed) {
     return NextResponse.json(
       {

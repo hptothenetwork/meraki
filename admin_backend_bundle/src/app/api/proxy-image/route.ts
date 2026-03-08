@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { getRequestIdentifier, distributedRateLimit } from "@/lib/rateLimit";
 
 export const dynamic = "force-dynamic";
 
@@ -16,6 +17,13 @@ export async function OPTIONS() {
 }
 
 export async function GET(req: NextRequest) {
+  // Rate limit: 60 image proxy requests per minute per IP
+  const identifier = getRequestIdentifier(req);
+  const rl = await distributedRateLimit("proxy-image", identifier, 60, 60 * 1000);
+  if (!rl.allowed) {
+    return NextResponse.json({ error: "Rate limit exceeded" }, { status: 429 });
+  }
+
   const url = req.nextUrl.searchParams.get("url");
   
   if (!url) {

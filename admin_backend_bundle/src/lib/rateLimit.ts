@@ -117,22 +117,23 @@ export const emailRateLimit = rateLimit({
  * In production, consider using more robust identifier like user ID + IP
  */
 export function getRequestIdentifier(req: Request): string {
-  // Try various headers for IP address
-  const forwarded = req.headers.get("x-forwarded-for");
-  const realIp = req.headers.get("x-real-ip");
+  // Prefer headers that cannot be spoofed by the client:
+  // cf-connecting-ip is set by Cloudflare and cannot be forged.
+  // x-forwarded-for CAN be spoofed unless your infra strips/overwrites it.
   const cfConnectingIp = req.headers.get("cf-connecting-ip");
+  if (cfConnectingIp) return cfConnectingIp.trim();
 
+  const realIp = req.headers.get("x-real-ip");
+  if (realIp) return realIp.trim();
+
+  // Only use the LAST entry in x-forwarded-for (added by the trusted proxy),
+  // not the first (which the client controls).
+  const forwarded = req.headers.get("x-forwarded-for");
   if (forwarded) {
-    return forwarded.split(",")[0].trim();
-  }
-  if (realIp) {
-    return realIp;
-  }
-  if (cfConnectingIp) {
-    return cfConnectingIp;
+    const parts = forwarded.split(",").map((s) => s.trim()).filter(Boolean);
+    return parts[parts.length - 1] || "unknown";
   }
 
-  // Fallback (not ideal but better than nothing)
   return "unknown";
 }
 
