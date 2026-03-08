@@ -30,4 +30,8 @@ pnpm-lock.yaml
 # public/uploads/ - committed to git for production image serving
 *.local
 *.log
+
+# Secrets — never commit these
+vercel-admin-import.env
+scripts/*.json
 mrk/mrk/mrk/
