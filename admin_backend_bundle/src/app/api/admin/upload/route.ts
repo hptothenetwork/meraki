@@ -52,6 +52,25 @@ export async function POST(req: Request) {
 
   let lastProviderError: unknown;
   try {
+    // ImageKit is the primary and required upload provider.
+    // Set IMAGEKIT_PRIVATE_KEY and IMAGEKIT_URL_ENDPOINT in Vercel env vars.
+    if (isImageKitConfigured()) {
+      try {
+        const { key, url } = await uploadToImageKit({
+          data: outputBuffer,
+          contentType: outputContentType,
+          fileName: file.name,
+          folder: "/products",
+        });
+        return NextResponse.json({ url, key, public_id: key, provider: "imagekit" });
+      } catch (error) {
+        console.error("[upload] imagekit failed, trying fallback provider", error);
+        lastProviderError = error;
+      }
+    } else {
+      console.warn("[upload] ImageKit not configured — set IMAGEKIT_PRIVATE_KEY and IMAGEKIT_URL_ENDPOINT in Vercel env vars");
+    }
+
     if (isVercelBlobConfigured()) {
       try {
         const { key, url } = await uploadToVercelBlob({
@@ -67,21 +86,6 @@ export async function POST(req: Request) {
       }
     }
 
-    if (isImageKitConfigured()) {
-      try {
-        const { key, url } = await uploadToImageKit({
-          data: outputBuffer,
-          contentType: outputContentType,
-          fileName: file.name,
-          folder: "/products",
-        });
-        return NextResponse.json({ url, key, public_id: key, provider: "imagekit" });
-      } catch (error) {
-        console.error("[upload] imagekit failed, trying fallback provider", error);
-        lastProviderError = error;
-      }
-    }
-
     if (isR2Ready()) {
       try {
         const { key, url } = await uploadToR2({
@@ -90,12 +94,19 @@ export async function POST(req: Request) {
           fileName: file.name,
           prefix: "products",
         });
-
         return NextResponse.json({ url, key, public_id: key, provider: "r2" });
       } catch (error) {
         console.error("[upload] r2 failed, trying local fallback", error);
         lastProviderError = error;
       }
+    }
+
+    // No providers configured — fail clearly instead of silently using local storage
+    if (!isImageKitConfigured() && !isVercelBlobConfigured() && !isR2Ready()) {
+      return NextResponse.json(
+        { error: "No upload provider configured. Set IMAGEKIT_PRIVATE_KEY + IMAGEKIT_URL_ENDPOINT in Vercel env vars." },
+        { status: 500 }
+      );
     }
 
     const { key, url } = await uploadToLocalStorage({
@@ -159,14 +170,15 @@ export async function DELETE(req: Request) {
   const publicId = searchParams.get("public_id");
   if (!publicId) return NextResponse.json({ error: "Missing public_id" }, { status: 400 });
   try {
-    // Vercel Blob URLs are full https:// URLs
-    if (isVercelBlobConfigured() && publicId.startsWith("https://")) {
-      await deleteFromVercelBlob(publicId);
+    // ImageKit file IDs start with "file_"
+    if (isImageKitConfigured() && /^file_/.test(publicId)) {
+      await deleteFromImageKit(publicId);
       return NextResponse.json({ ok: true });
     }
 
-    if (isImageKitConfigured() && /^file_/.test(publicId)) {
-      await deleteFromImageKit(publicId);
+    // Vercel Blob URLs are full https:// URLs
+    if (isVercelBlobConfigured() && publicId.startsWith("https://")) {
+      await deleteFromVercelBlob(publicId);
       return NextResponse.json({ ok: true });
     }
 
