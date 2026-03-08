@@ -17,15 +17,6 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  // Basic Origin check for cookie-based auth to reduce CSRF window
-  const origin = req.headers.get("origin");
-  if (origin) {
-    const url = new URL(req.url);
-    if (new URL(origin).host !== url.host) {
-      return NextResponse.json({ error: "Invalid origin" }, { status: 403 });
-    }
-  }
-
   const formData = await req.formData();
   const file = formData.get("file");
   if (!file || typeof file === "string") {

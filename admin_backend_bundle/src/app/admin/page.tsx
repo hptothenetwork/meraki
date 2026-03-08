@@ -4065,7 +4065,6 @@ export default function AdminPage() {
                     type="file"
                     ref={(el) => { if (el && !el.dataset.eventMedia) { el.dataset.eventMedia = "true"; } }}
                     accept="image/*,video/*"
-                    capture="environment"
                     multiple
                     className="hidden"
                     onChange={async (e) => {
