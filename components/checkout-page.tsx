@@ -6,7 +6,7 @@ import Image from "next/image"
 import { CheckCircle2, Package, CreditCard } from "lucide-react"
 import { useCart } from "@/lib/cart-context"
 import { SiteFooter } from "@/components/site-footer"
-import ReCAPTCHA from "react-google-recaptcha"
+import { Turnstile, type TurnstileInstance } from "@marsidev/react-turnstile"
 
 type PaymentOption = {
   id: "cash_on_delivery" | "pesapal"
@@ -49,8 +49,8 @@ function CheckoutInner() {
   const [sameAsBilling, setSameAsBilling] = useState(true)
   const [confirmed, setConfirmed] = useState(false)
   const [captchaToken, setCaptchaToken] = useState("")
-  const captchaRef = useRef<ReCAPTCHA | null>(null)
-  const recaptchaSiteKey = process.env.NEXT_PUBLIC_RECAPTCHA_SITE_KEY || ""
+  const captchaRef = useRef<TurnstileInstance | null>(null)
+  const turnstileSiteKey = process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY || ""
   const [giftCodeInput, setGiftCodeInput] = useState("")
   const [appliedGiftCode, setAppliedGiftCode] = useState<AppliedGiftCode | null>(null)
   const [giftCodeError, setGiftCodeError] = useState("")
@@ -155,7 +155,7 @@ function CheckoutInner() {
     e.preventDefault()
     if (items.length === 0 || !confirmed) return
 
-    if (recaptchaSiteKey && !captchaToken) {
+    if (turnstileSiteKey && !captchaToken) {
       setSubmitError("Please complete the captcha verification.")
       return
     }
@@ -364,17 +364,18 @@ function CheckoutInner() {
               <input type="checkbox" checked={confirmed} onChange={(e) => setConfirmed(e.target.checked)} />
               I confirm the billing and shipping details are correct and I am ready to complete this order.
             </label>
-            {recaptchaSiteKey && (
+            {turnstileSiteKey && (
               <div className="mt-4">
-                <ReCAPTCHA
+                <Turnstile
                   ref={captchaRef}
-                  sitekey={recaptchaSiteKey}
-                  onChange={(token) => setCaptchaToken(token || "")}
+                  siteKey={turnstileSiteKey}
+                  onSuccess={(token) => setCaptchaToken(token)}
+                  onExpire={() => setCaptchaToken("")}
                 />
               </div>
             )}
             <button
-              disabled={submitting || items.length === 0 || !confirmed || (!!recaptchaSiteKey && !captchaToken)}
+              disabled={submitting || items.length === 0 || !confirmed || (!!turnstileSiteKey && !captchaToken)}
               className="mt-5 w-full rounded-full bg-primary px-6 py-3 text-sm font-medium text-primary-foreground disabled:opacity-60"
             >
               {submitting ? "Creating order..." : "Complete order"}

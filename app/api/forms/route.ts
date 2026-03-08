@@ -18,8 +18,8 @@ function getClientIp(req: NextRequest): string {
   return ""
 }
 
-async function verifyRecaptchaToken(token: string | undefined, ip: string) {
-  const secret = process.env.RECAPTCHA_SECRET_KEY
+async function verifyTurnstileToken(token: string | undefined, ip: string) {
+  const secret = process.env.TURNSTILE_SECRET_KEY
   if (!secret) return { ok: true, enforced: false as const }
   if (!token) return { ok: false, enforced: true as const, reason: "missing_token" }
 
@@ -29,7 +29,7 @@ async function verifyRecaptchaToken(token: string | undefined, ip: string) {
   if (ip) params.set("remoteip", ip)
 
   try {
-    const res = await fetch("https://www.google.com/recaptcha/api/siteverify", {
+    const res = await fetch("https://challenges.cloudflare.com/turnstile/v0/siteverify", {
       method: "POST",
       headers: { "Content-Type": "application/x-www-form-urlencoded" },
       body: params.toString(),
@@ -98,7 +98,7 @@ export async function POST(req: NextRequest) {
   }
 
   const captchaToken = body.captchaToken || body.recaptchaToken
-  const captchaResult = await verifyRecaptchaToken(captchaToken, getClientIp(req))
+  const captchaResult = await verifyTurnstileToken(captchaToken, getClientIp(req))
   if (!captchaResult.ok) {
     return NextResponse.json({ error: "Captcha verification failed." }, { status: 400 })
   }

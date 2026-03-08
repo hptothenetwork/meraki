@@ -1,7 +1,7 @@
 "use client"
 
 import { useRef, useState } from "react"
-import ReCAPTCHA from "react-google-recaptcha"
+import { Turnstile, type TurnstileInstance } from "@marsidev/react-turnstile"
 
 export function EventAttendanceForm({
   eventId,
@@ -23,8 +23,8 @@ export function EventAttendanceForm({
   const [sending, setSending] = useState(false)
   const [message, setMessage] = useState("")
   const [captchaToken, setCaptchaToken] = useState("")
-  const recaptchaRef = useRef<ReCAPTCHA | null>(null)
-  const recaptchaSiteKey = process.env.NEXT_PUBLIC_RECAPTCHA_SITE_KEY || ""
+  const recaptchaRef = useRef<TurnstileInstance | null>(null)
+  const recaptchaSiteKey = process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY || ""
 
   const onSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -99,10 +99,11 @@ export function EventAttendanceForm({
 
       {recaptchaSiteKey && (
         <div className="mt-4">
-          <ReCAPTCHA
+          <Turnstile
             ref={recaptchaRef}
-            sitekey={recaptchaSiteKey}
-            onChange={(token) => setCaptchaToken(token || "")}
+            siteKey={recaptchaSiteKey}
+            onSuccess={(token) => setCaptchaToken(token)}
+            onExpire={() => setCaptchaToken("")}
           />
         </div>
       )}

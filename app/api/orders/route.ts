@@ -193,19 +193,19 @@ export async function POST(req: NextRequest) {
     paymentChannel?: "visa_mastercard_amex" | "mpesa" | "airtel_money" | "mtn_momo" | "tigo_pesa_mixx" | "bank_transfer" | "pesapal" | "cash_on_delivery"
   }
 
-  // Server-side reCAPTCHA verification
-  const recaptchaSecret = process.env.RECAPTCHA_SECRET_KEY
-  if (recaptchaSecret) {
+  // Server-side Turnstile verification
+  const turnstileSecret = process.env.TURNSTILE_SECRET_KEY
+  if (turnstileSecret) {
     const token = body.captchaToken
     if (!token) {
       return NextResponse.json({ error: "Captcha verification required." }, { status: 400 })
     }
-    const verifyRes = await fetch("https://www.google.com/recaptcha/api/siteverify", {
+    const verifyRes = await fetch("https://challenges.cloudflare.com/turnstile/v0/siteverify", {
       method: "POST",
       headers: { "Content-Type": "application/x-www-form-urlencoded" },
-      body: `secret=${recaptchaSecret}&response=${token}`,
+      body: `secret=${turnstileSecret}&response=${token}`,
     })
-    const verifyData = (await verifyRes.json().catch(() => ({}))) as { success?: boolean; score?: number }
+    const verifyData = (await verifyRes.json().catch(() => ({}))) as { success?: boolean }
     if (!verifyData.success) {
       return NextResponse.json({ error: "Captcha verification failed. Please try again." }, { status: 400 })
     }

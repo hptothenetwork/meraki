@@ -4,7 +4,7 @@ import Link from "next/link"
 import { useRef, useState } from "react"
 import Image from "next/image"
 import { Mail, MapPin, PhoneCall, Sparkles } from "lucide-react"
-import ReCAPTCHA from "react-google-recaptcha"
+import { Turnstile, type TurnstileInstance } from "@marsidev/react-turnstile"
 import type { SiteAssets } from "@/types/catalog"
 import { Navbar } from "@/components/navbar"
 import { SiteFooter } from "@/components/site-footer"
@@ -30,9 +30,9 @@ export function ContactPage({ siteAssets, mode = "contact" }: { siteAssets: Site
   const [customDone, setCustomDone] = useState("")
   const [contactCaptchaToken, setContactCaptchaToken] = useState("")
   const [customCaptchaToken, setCustomCaptchaToken] = useState("")
-  const contactCaptchaRef = useRef<ReCAPTCHA | null>(null)
-  const customCaptchaRef = useRef<ReCAPTCHA | null>(null)
-  const recaptchaSiteKey = process.env.NEXT_PUBLIC_RECAPTCHA_SITE_KEY || ""
+  const contactCaptchaRef = useRef<TurnstileInstance | null>(null)
+  const customCaptchaRef = useRef<TurnstileInstance | null>(null)
+  const recaptchaSiteKey = process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY || ""
   const contactSettings = liveSiteAssets.contact || {}
   const inboxEmail = contactSettings.email || "brandmeraki5@gmail.com"
   const showCustomCutsForm = contactSettings.enableCustomCutsForm !== false
@@ -249,10 +249,11 @@ export function ContactPage({ siteAssets, mode = "contact" }: { siteAssets: Site
                 </div>
                 {recaptchaSiteKey && (
                   <div className="mt-4">
-                    <ReCAPTCHA
+                    <Turnstile
                       ref={customCaptchaRef}
-                      sitekey={recaptchaSiteKey}
-                      onChange={(token) => setCustomCaptchaToken(token || "")}
+                      siteKey={recaptchaSiteKey}
+                      onSuccess={(token) => setCustomCaptchaToken(token)}
+                      onExpire={() => setCustomCaptchaToken("")}
                     />
                   </div>
                 )}
@@ -327,10 +328,11 @@ export function ContactPage({ siteAssets, mode = "contact" }: { siteAssets: Site
 
               {recaptchaSiteKey && (
                 <div className="mt-4">
-                  <ReCAPTCHA
+                  <Turnstile
                     ref={contactCaptchaRef}
-                    sitekey={recaptchaSiteKey}
-                    onChange={(token) => setContactCaptchaToken(token || "")}
+                    siteKey={recaptchaSiteKey}
+                    onSuccess={(token) => setContactCaptchaToken(token)}
+                    onExpire={() => setContactCaptchaToken("")}
                   />
                 </div>
               )}
