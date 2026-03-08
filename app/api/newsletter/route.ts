@@ -7,10 +7,12 @@ export const runtime = "nodejs"
 export const dynamic = "force-dynamic"
 
 function getClientIp(req: NextRequest): string {
+  const cf = req.headers.get("cf-connecting-ip")?.trim()
+  if (cf) return cf
   const forwarded = req.headers.get("x-forwarded-for")
   if (forwarded) {
-    const first = forwarded.split(",")[0]?.trim()
-    if (first) return first
+    const entries = forwarded.split(",").map((s) => s.trim()).filter(Boolean)
+    if (entries.length) return entries[entries.length - 1]
   }
   const realIp = req.headers.get("x-real-ip")?.trim()
   if (realIp) return realIp
