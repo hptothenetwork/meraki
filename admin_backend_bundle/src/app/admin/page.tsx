@@ -4114,7 +4114,12 @@ export default function AdminPage() {
                     className={`${ghostBtn} flex-1 sm:flex-none`}
                     onClick={() => {
                       const input = document.querySelector('input[data-event-media="true"]') as HTMLInputElement;
-                      if (input) input.click();
+                      if (input) {
+                        input.setAttribute("capture", "environment");
+                        input.click();
+                        // Remove after dialog opens so next use defaults to gallery
+                        setTimeout(() => input.removeAttribute("capture"), 500);
+                      }
                     }}
                   >
                      Take Photo/Video
@@ -4126,11 +4131,10 @@ export default function AdminPage() {
                       if (input) {
                         input.removeAttribute("capture");
                         input.click();
-                        setTimeout(() => input.setAttribute("capture", "environment"), 100);
                       }
                     }}
                   >
-                     Choose from Library
+                     Choose from Gallery
                   </button>
                   <button
                     className={`${ghostBtn} flex-1 sm:flex-none`}
@@ -4152,7 +4156,7 @@ export default function AdminPage() {
                 <div className="rounded-lg bg-mubah-orange/10 border border-mubah-orange/30 px-3 py-2">
                   <p className="text-xs text-mubah-orange/90">
                     <strong> Take Photo/Video:</strong> Capture new media using device camera (iOS/Android)<br/>
-                    <strong> Choose from Library:</strong> Select existing photos/videos from your gallery<br/>
+                    <strong> Choose from Gallery:</strong> Select existing photos/videos from your camera roll<br/>
                     <strong> Add URL:</strong> Paste a URL to an image/video hosted elsewhere<br/>
                     <strong>Set as Poster:</strong> Click "Set Poster" on any thumbnail to make it the main event image
                   </p>
