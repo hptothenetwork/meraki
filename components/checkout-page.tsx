@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useState } from "react"
 import { useRouter } from "next/navigation"
 import Image from "next/image"
-import { CheckCircle2, Package, CreditCard, Truck } from "lucide-react"
+import { CheckCircle2, Package, CreditCard } from "lucide-react"
 import { useCart } from "@/lib/cart-context"
 import { SiteFooter } from "@/components/site-footer"
 
@@ -45,69 +45,56 @@ function CheckoutInner() {
   const { items, totalPrice } = useCart()
   const [submitting, setSubmitting] = useState(false)
   const [submitError, setSubmitError] = useState("")
-  const [sameAsShipping, setSameAsShipping] = useState(true)
+  const [sameAsBilling, setSameAsBilling] = useState(true)
   const [confirmed, setConfirmed] = useState(false)
   const [giftCodeInput, setGiftCodeInput] = useState("")
   const [appliedGiftCode, setAppliedGiftCode] = useState<AppliedGiftCode | null>(null)
   const [giftCodeError, setGiftCodeError] = useState("")
   const [giftCodeBusy, setGiftCodeBusy] = useState(false)
   const [form, setForm] = useState({
-    // Shipping (collected first)
-    shippingType: "local" as "local" | "international",
-    shippingRecipientName: "",
-    shippingPhone: "",
-    shippingAddress: "",
-    shippingCity: "",
-    shippingCountry: "Tanzania",
-    // Billing
     billingFullName: "",
     billingEmail: "",
     billingPhone: "",
     billingAddress: "",
     billingCity: "",
     billingCountry: "Tanzania",
+    shippingRecipientName: "",
+    shippingPhone: "",
+    shippingAddress: "",
+    shippingCity: "",
+    shippingCountry: "Tanzania",
+    shippingSpecialNote: "",
     notes: "",
     paymentChannel: "cash_on_delivery" as PaymentOption["id"],
   })
 
+  // TODO(shipping-api): replace this flat mock rule with live shipping quotes once courier API keys are ready.
+  const shipping = totalPrice >= 250000 ? 0 : 10000
   const discountAmount = appliedGiftCode?.discountAmount || 0
-  // Shipping cost is TBA — not added to total at checkout time
-  const total = Math.max(0, totalPrice - discountAmount)
+  const total = Math.max(0, totalPrice + shipping - discountAmount)
   const selectedOption = paymentOptions.find((o) => o.id === form.paymentChannel) ?? paymentOptions[0]
 
   const shippingDetails = useMemo(
-    () => ({
-      recipientName: form.shippingRecipientName,
-      phone: form.shippingPhone,
-      address: form.shippingAddress,
-      city: form.shippingCity,
-      country: form.shippingCountry,
-      shippingType: form.shippingType,
-    }),
-    [form],
-  )
-
-  const billingDetails = useMemo(
     () =>
-      sameAsShipping
+      sameAsBilling
         ? {
-            fullName: form.shippingRecipientName,
-            email: form.billingEmail,
-            phone: form.shippingPhone,
-            address: form.shippingAddress,
-            city: form.shippingCity,
-            country: form.shippingCountry,
-          }
-        : {
-            fullName: form.billingFullName,
-            email: form.billingEmail,
+            recipientName: form.billingFullName,
             phone: form.billingPhone,
             address: form.billingAddress,
             city: form.billingCity,
             country: form.billingCountry,
+          }
+        : {
+            recipientName: form.shippingRecipientName,
+            phone: form.shippingPhone,
+            address: form.shippingAddress,
+            city: form.shippingCity,
+            country: form.shippingCountry,
           },
-    [form, sameAsShipping],
+    [form, sameAsBilling],
   )
+
+  const isInternational = (shippingDetails.country || "").trim().toLowerCase() !== "tanzania"
 
   const applyGiftCode = async (codeRaw?: string) => {
     const code = (codeRaw ?? giftCodeInput).trim().toUpperCase()
@@ -155,6 +142,7 @@ function CheckoutInner() {
 
   useEffect(() => {
     if (!appliedGiftCode) return
+    // Keep discount accurate if cart subtotal changes.
     void applyGiftCode(appliedGiftCode.code)
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [totalPrice])
@@ -165,20 +153,28 @@ function CheckoutInner() {
 
     setSubmitting(true)
     setSubmitError("")
+    // TODO(payments-api): this only creates an order draft. Real payment intent/session creation should happen here.
     const res = await fetch("/api/orders", {
       method: "POST",
       headers: { "content-type": "application/json" },
       body: JSON.stringify({
         customer: {
-          fullName: billingDetails.fullName,
-          email: billingDetails.email,
-          phone: billingDetails.phone,
-          address: billingDetails.address,
-          city: billingDetails.city,
-          country: billingDetails.country,
+          fullName: form.billingFullName,
+          email: form.billingEmail,
+          phone: form.billingPhone,
+          address: form.billingAddress,
+          city: form.billingCity,
+          country: form.billingCountry,
         },
-        billingDetails,
-        shippingDetails,
+        billingDetails: {
+          fullName: form.billingFullName,
+          email: form.billingEmail,
+          phone: form.billingPhone,
+          address: form.billingAddress,
+          city: form.billingCity,
+          country: form.billingCountry,
+        },
+        shippingDetails: { ...shippingDetails, specialNote: form.shippingSpecialNote },
         notes: form.notes,
         paymentMethod: selectedOption.method === "cash_on_delivery" ? "cash_on_delivery" : "card",
         paymentChannel: form.paymentChannel,
@@ -204,171 +200,55 @@ function CheckoutInner() {
     <section className="mx-auto grid max-w-7xl gap-8 px-4 py-10 lg:grid-cols-[1.2fr_0.8fr] md:px-8">
       <div>
         <h1 className="font-serif text-4xl text-foreground">Checkout</h1>
-        <p className="mt-2 text-sm text-muted-foreground">Enter your shipping details, then billing and payment.</p>
+        <p className="mt-2 text-sm text-muted-foreground">Billing, shipping and secure payment confirmation.</p>
 
         <form onSubmit={submit} className="mt-6 space-y-6">
-
-          {/* ── 1. SHIPPING DETAILS ── */}
           <article className="rounded-2xl border border-border bg-card p-5 md:p-6">
-            <div className="flex items-center gap-3">
-              <Truck className="h-5 w-5 text-foreground" />
-              <h2 className="font-serif text-2xl text-foreground">Shipping details</h2>
-            </div>
-            <p className="mt-1 text-sm text-muted-foreground">
-              Our team will confirm your exact shipping cost and contact you before dispatch.
-            </p>
-
-            {/* Local / International toggle */}
-            <div className="mt-4 flex gap-3">
-              {(["local", "international"] as const).map((type) => (
-                <button
-                  key={type}
-                  type="button"
-                  onClick={() => setForm({ ...form, shippingType: type, shippingCountry: type === "local" ? "Tanzania" : "" })}
-                  className={`flex-1 rounded-xl border px-4 py-2.5 text-sm font-medium transition-colors ${
-                    form.shippingType === type
-                      ? "border-foreground bg-foreground text-background"
-                      : "border-border bg-background text-muted-foreground hover:border-foreground/40"
-                  }`}
-                >
-                  {type === "local" ? "🇹🇿 Local (Tanzania)" : "✈️ International"}
-                </button>
-              ))}
-            </div>
-
-            {form.shippingType === "international" && (
-              <div className="mt-3 rounded-xl border border-amber-500/30 bg-amber-50/10 px-4 py-3 text-xs text-muted-foreground">
-                International shipping cost will be confirmed by our team via phone or WhatsApp after your order is placed.
-              </div>
-            )}
-
+            <h2 className="font-serif text-2xl text-foreground">Billing details</h2>
             <div className="mt-4 grid gap-3 md:grid-cols-2">
-              <input
-                required
-                placeholder="Recipient name"
-                value={form.shippingRecipientName}
-                onChange={(e) => setForm({ ...form, shippingRecipientName: e.target.value })}
-                className="rounded-lg border border-border bg-background px-3 py-2"
-              />
-              <input
-                required
-                placeholder="Phone number"
-                value={form.shippingPhone}
-                onChange={(e) => setForm({ ...form, shippingPhone: e.target.value })}
-                className="rounded-lg border border-border bg-background px-3 py-2"
-              />
-              <input
-                required
-                placeholder={form.shippingType === "local" ? "City / Area" : "City"}
-                value={form.shippingCity}
-                onChange={(e) => setForm({ ...form, shippingCity: e.target.value })}
-                className="rounded-lg border border-border bg-background px-3 py-2"
-              />
-              {form.shippingType === "international" ? (
-                <input
-                  required
-                  placeholder="Country"
-                  value={form.shippingCountry}
-                  onChange={(e) => setForm({ ...form, shippingCountry: e.target.value })}
-                  className="rounded-lg border border-border bg-background px-3 py-2"
-                />
-              ) : (
-                <input
-                  readOnly
-                  value="Tanzania"
-                  className="rounded-lg border border-border bg-muted px-3 py-2 text-muted-foreground"
-                />
-              )}
-              <input
-                required
-                placeholder="Street address / neighbourhood"
-                value={form.shippingAddress}
-                onChange={(e) => setForm({ ...form, shippingAddress: e.target.value })}
-                className="md:col-span-2 rounded-lg border border-border bg-background px-3 py-2"
-              />
+              <input required placeholder="Full name" value={form.billingFullName} onChange={(e) => setForm({ ...form, billingFullName: e.target.value })} className="rounded-lg border border-border bg-background px-3 py-2" />
+              <input required type="email" placeholder="Email" value={form.billingEmail} onChange={(e) => setForm({ ...form, billingEmail: e.target.value })} className="rounded-lg border border-border bg-background px-3 py-2" />
+              <input required placeholder="Phone" value={form.billingPhone} onChange={(e) => setForm({ ...form, billingPhone: e.target.value })} className="rounded-lg border border-border bg-background px-3 py-2" />
+              <input required placeholder="City" value={form.billingCity} onChange={(e) => setForm({ ...form, billingCity: e.target.value })} className="rounded-lg border border-border bg-background px-3 py-2" />
             </div>
-
-            {/* Shipping cost notice */}
-            <div className="mt-4 flex items-start gap-3 rounded-xl border border-border bg-background px-4 py-3">
-              <Package className="mt-0.5 h-4 w-4 shrink-0 text-muted-foreground" />
-              <div>
-                <p className="text-sm font-medium text-foreground">Shipping cost — TBA</p>
-                <p className="mt-0.5 text-xs text-muted-foreground">
-                  We will reach out via phone or WhatsApp to confirm the exact shipping cost for your{" "}
-                  {form.shippingType === "international" ? "international" : "local"} delivery before processing your order.
-                </p>
-              </div>
-            </div>
+            <input required placeholder="Address" value={form.billingAddress} onChange={(e) => setForm({ ...form, billingAddress: e.target.value })} className="mt-3 w-full rounded-lg border border-border bg-background px-3 py-2" />
           </article>
 
-          {/* ── 2. BILLING DETAILS ── */}
           <article className="rounded-2xl border border-border bg-card p-5 md:p-6">
             <div className="flex items-center justify-between gap-4">
-              <h2 className="font-serif text-2xl text-foreground">Billing details</h2>
-              <label className="flex cursor-pointer items-center gap-2 text-xs text-muted-foreground">
-                <input
-                  type="checkbox"
-                  checked={sameAsShipping}
-                  onChange={(e) => setSameAsShipping(e.target.checked)}
-                />
-                Same as shipping
+              <h2 className="font-serif text-2xl text-foreground">Shipping details</h2>
+              <label className="flex items-center gap-2 text-xs text-muted-foreground">
+                <input type="checkbox" checked={sameAsBilling} onChange={(e) => setSameAsBilling(e.target.checked)} />
+                Same as billing
               </label>
             </div>
-
-            {/* Email always needed for order confirmation */}
-            <div className="mt-4">
-              <input
-                required
-                type="email"
-                placeholder="Email (for order confirmation)"
-                value={form.billingEmail}
-                onChange={(e) => setForm({ ...form, billingEmail: e.target.value })}
-                className="w-full rounded-lg border border-border bg-background px-3 py-2"
-              />
-            </div>
-
-            {!sameAsShipping && (
-              <div className="mt-3 grid gap-3 md:grid-cols-2">
-                <input
-                  required
-                  placeholder="Full name"
-                  value={form.billingFullName}
-                  onChange={(e) => setForm({ ...form, billingFullName: e.target.value })}
-                  className="rounded-lg border border-border bg-background px-3 py-2"
-                />
-                <input
-                  required
-                  placeholder="Phone"
-                  value={form.billingPhone}
-                  onChange={(e) => setForm({ ...form, billingPhone: e.target.value })}
-                  className="rounded-lg border border-border bg-background px-3 py-2"
-                />
-                <input
-                  required
-                  placeholder="City"
-                  value={form.billingCity}
-                  onChange={(e) => setForm({ ...form, billingCity: e.target.value })}
-                  className="rounded-lg border border-border bg-background px-3 py-2"
-                />
-                <input
-                  required
-                  placeholder="Country"
-                  value={form.billingCountry}
-                  onChange={(e) => setForm({ ...form, billingCountry: e.target.value })}
-                  className="rounded-lg border border-border bg-background px-3 py-2"
-                />
-                <input
-                  required
-                  placeholder="Address"
-                  value={form.billingAddress}
-                  onChange={(e) => setForm({ ...form, billingAddress: e.target.value })}
-                  className="md:col-span-2 rounded-lg border border-border bg-background px-3 py-2"
-                />
+            {(!sameAsBilling || isInternational) && (
+              <div className="mt-4 grid gap-3 md:grid-cols-2">
+                <input required={!sameAsBilling} placeholder="Recipient name" value={form.shippingRecipientName} onChange={(e) => setForm({ ...form, shippingRecipientName: e.target.value })} className="rounded-lg border border-border bg-background px-3 py-2" />
+                <input required={!sameAsBilling} placeholder="Phone" value={form.shippingPhone} onChange={(e) => setForm({ ...form, shippingPhone: e.target.value })} className="rounded-lg border border-border bg-background px-3 py-2" />
+                <input required={!sameAsBilling} placeholder="City" value={form.shippingCity} onChange={(e) => setForm({ ...form, shippingCity: e.target.value })} className="rounded-lg border border-border bg-background px-3 py-2" />
+                <input required={!sameAsBilling} placeholder="Country" value={form.shippingCountry} onChange={(e) => setForm({ ...form, shippingCountry: e.target.value })} className="rounded-lg border border-border bg-background px-3 py-2" />
+                <input required={!sameAsBilling} placeholder="Address" value={form.shippingAddress} onChange={(e) => setForm({ ...form, shippingAddress: e.target.value })} className="md:col-span-2 rounded-lg border border-border bg-background px-3 py-2" />
+                {isInternational && (
+                  <p className="md:col-span-2 rounded-lg bg-accent/10 border border-accent/40 px-3 py-2 text-xs text-muted-foreground">
+                    International order detected — our team will contact you with the shipping cost before processing your order.
+                  </p>
+                )}
               </div>
             )}
+            <div className="mt-4">
+              <label className="block text-xs font-medium uppercase tracking-wide text-muted-foreground mb-1">Special delivery note (optional)</label>
+              <textarea
+                rows={3}
+                placeholder="e.g. Landmark near your address, gate code, best time to call, building name…"
+                value={form.shippingSpecialNote}
+                onChange={(e) => setForm({ ...form, shippingSpecialNote: e.target.value })}
+                className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm placeholder:text-muted-foreground resize-none"
+              />
+              <p className="mt-1 text-xs text-muted-foreground">Helps our team find you and deliver accurately — applies to both local and international orders.</p>
+            </div>
           </article>
 
-          {/* ── 3. PAYMENT METHOD ── */}
           <article className="rounded-2xl border border-border bg-card p-5 md:p-6">
             <h2 className="font-serif text-2xl text-foreground">Payment method</h2>
             <p className="mt-2 text-sm text-muted-foreground">Choose how you would like to pay.</p>
@@ -424,7 +304,41 @@ function CheckoutInner() {
             )}
           </article>
 
-          {/* ── 4. CONFIRM ── */}
+          <article className="rounded-2xl border border-border bg-card p-5 md:p-6">
+            <h2 className="font-serif text-2xl text-foreground">Shipping</h2>
+            {isInternational ? (
+              <>
+                <p className="mt-2 text-sm text-muted-foreground">You have entered an international destination. Please make sure all your shipping details above are filled in correctly.</p>
+                <div className="mt-4 rounded-xl border border-accent/50 bg-accent/10 px-4 py-3">
+                  <p className="text-sm font-medium text-foreground">International shipping — cost to be confirmed</p>
+                  <p className="mt-1 text-xs text-muted-foreground">Our team will review your order and reach out to you via email or phone with the exact international shipping cost before your order is processed and dispatched.</p>
+                </div>
+              </>
+            ) : (
+              <>
+                <p className="mt-2 text-sm text-muted-foreground">Domestic delivery rates for Tanzania.</p>
+                <div className="mt-4 grid gap-3 md:grid-cols-3">
+                  <div className="rounded-xl border border-border bg-background p-3">
+                    <p className="text-xs uppercase tracking-wide text-muted-foreground">Dar es Salaam</p>
+                    <p className="mt-2 text-lg font-semibold text-foreground">TZS 10,000</p>
+                    <p className="text-xs text-muted-foreground">Same/next day zone</p>
+                  </div>
+                  <div className="rounded-xl border border-border bg-background p-3">
+                    <p className="text-xs uppercase tracking-wide text-muted-foreground">Other cities</p>
+                    <p className="mt-2 text-lg font-semibold text-foreground">TZS 15,000</p>
+                    <p className="text-xs text-muted-foreground">1–3 business days</p>
+                  </div>
+                  <div className="rounded-xl border border-border bg-background p-3">
+                    <p className="text-xs uppercase tracking-wide text-muted-foreground">Express</p>
+                    <p className="mt-2 text-lg font-semibold text-foreground">TZS 25,000</p>
+                    <p className="text-xs text-muted-foreground">Priority handling</p>
+                  </div>
+                </div>
+                <p className="mt-3 text-xs text-muted-foreground">Free shipping on orders from TZS 250,000.</p>
+              </>
+            )}
+          </article>
+
           <article className="rounded-2xl border border-border bg-card p-5 md:p-6">
             <h2 className="font-serif text-2xl text-foreground">Confirm checkout</h2>
             <textarea
@@ -436,7 +350,7 @@ function CheckoutInner() {
             />
             <label className="mt-4 flex items-start gap-2 text-sm text-muted-foreground">
               <input type="checkbox" checked={confirmed} onChange={(e) => setConfirmed(e.target.checked)} />
-              I confirm my shipping and billing details are correct and I am ready to complete this order. I understand the shipping cost will be communicated separately.
+              I confirm the billing and shipping details are correct and I am ready to complete this order.
             </label>
             <button
               disabled={submitting || items.length === 0 || !confirmed}
@@ -489,17 +403,14 @@ function CheckoutInner() {
         </div>
         <div className="mt-5 border-t border-border pt-3 text-sm">
           <div className="flex justify-between"><span>Subtotal</span><span>TZS {totalPrice.toLocaleString("en-US")}</span></div>
+          <div className="mt-1 flex justify-between"><span>Shipping</span><span>{shipping === 0 ? "Free" : `TZS ${shipping.toLocaleString("en-US")}`}</span></div>
           {discountAmount > 0 && (
             <div className="mt-1 flex justify-between text-green-700">
               <span>Discount ({appliedGiftCode?.code})</span>
               <span>- TZS {discountAmount.toLocaleString("en-US")}</span>
             </div>
           )}
-          <div className="mt-1 flex justify-between text-muted-foreground">
-            <span>Shipping</span>
-            <span className="italic">TBA — we&apos;ll contact you</span>
-          </div>
-          <div className="mt-2 flex justify-between font-semibold"><span>Total (excl. shipping)</span><span>TZS {total.toLocaleString("en-US")}</span></div>
+          <div className="mt-2 flex justify-between font-semibold"><span>Total</span><span>TZS {total.toLocaleString("en-US")}</span></div>
         </div>
         <div className="mt-5 rounded-xl border border-border bg-background p-3 text-xs text-muted-foreground">
           <div className="flex items-center gap-2 text-foreground">
