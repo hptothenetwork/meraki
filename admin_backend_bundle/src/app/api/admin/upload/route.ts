@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { deleteFromR2, extractR2Key, isR2Ready, uploadToR2 } from "@backend/r2";
 import { deleteFromImageKit, isImageKitConfigured, uploadToImageKit } from "@backend/imagekit";
 import { deleteFromLocalStorage, extractLocalUploadKey, uploadToLocalStorage } from "@backend/local-upload";
+import { deleteFromVercelBlob, isVercelBlobConfigured, uploadToVercelBlob } from "@backend/vercel-blob";
 import { requireAdmin } from "@backend/admin/auth";
 import { assertSameOrigin } from "@backend/admin/csrf";
 import sharp from "sharp";
@@ -51,6 +52,21 @@ export async function POST(req: Request) {
 
   let lastProviderError: unknown;
   try {
+    if (isVercelBlobConfigured()) {
+      try {
+        const { key, url } = await uploadToVercelBlob({
+          data: outputBuffer,
+          contentType: outputContentType,
+          fileName: file.name,
+          prefix: "products",
+        });
+        return NextResponse.json({ url, key, public_id: key, provider: "vercel-blob" });
+      } catch (error) {
+        console.error("[upload] vercel-blob failed, trying next provider", error);
+        lastProviderError = error;
+      }
+    }
+
     if (isImageKitConfigured()) {
       try {
         const { key, url } = await uploadToImageKit({
@@ -143,6 +159,12 @@ export async function DELETE(req: Request) {
   const publicId = searchParams.get("public_id");
   if (!publicId) return NextResponse.json({ error: "Missing public_id" }, { status: 400 });
   try {
+    // Vercel Blob URLs are full https:// URLs
+    if (isVercelBlobConfigured() && publicId.startsWith("https://")) {
+      await deleteFromVercelBlob(publicId);
+      return NextResponse.json({ ok: true });
+    }
+
     if (isImageKitConfigured() && /^file_/.test(publicId)) {
       await deleteFromImageKit(publicId);
       return NextResponse.json({ ok: true });

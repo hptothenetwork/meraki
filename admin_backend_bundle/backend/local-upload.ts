@@ -27,7 +27,11 @@ const RAW_PUBLIC_BASE_URL =
   process.env.LOCAL_UPLOAD_PUBLIC_BASE_URL ||
   process.env.NEXT_PUBLIC_BASE_URL ||
   (process.env.NODE_ENV === "production" ? "" : DEFAULT_DEV_PUBLIC_BASE_URL);
-const PUBLIC_BASE_URL = RAW_PUBLIC_BASE_URL ? RAW_PUBLIC_BASE_URL.replace(/\/+$/, "") : "";
+// In production, if no explicit base URL is set, use relative paths to avoid
+// localhost URLs being stored in the database (breaks on deployment).
+const PUBLIC_BASE_URL = RAW_PUBLIC_BASE_URL && !RAW_PUBLIC_BASE_URL.includes("localhost")
+  ? RAW_PUBLIC_BASE_URL.replace(/\/+$/, "")
+  : process.env.NODE_ENV === "production" ? "" : (RAW_PUBLIC_BASE_URL?.replace(/\/+$/, "") ?? "");
 
 export async function uploadToLocalStorage({
   data,
