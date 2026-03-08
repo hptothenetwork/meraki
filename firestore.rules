@@ -1,6 +1,65 @@
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
+
+    // Public read — storefront collections
+    match /products/{docId} {
+      allow read: if true;
+      allow write: if false;
+    }
+    match /categories/{docId} {
+      allow read: if true;
+      allow write: if false;
+    }
+    match /events/{docId} {
+      allow read: if true;
+      allow write: if false;
+    }
+    match /posts/{docId} {
+      allow read: if true;
+      allow write: if false;
+    }
+    match /siteSettings/{docId} {
+      allow read: if true;
+      allow write: if false;
+    }
+    match /siteAssets/{docId} {
+      allow read: if true;
+      allow write: if false;
+    }
+
+    // Reviews — anyone can submit, admin manages via server SDK
+    match /reviews/{docId} {
+      allow read: if true;
+      allow create: if true;
+      allow update, delete: if false;
+    }
+
+    // Newsletter signups — public write (subscribe), no read
+    match /newsletter_subscribers/{docId} {
+      allow read: if false;
+      allow create: if true;
+      allow update, delete: if false;
+    }
+
+    // Orders, admin data, analytics — server-side Admin SDK only
+    match /orders/{docId} {
+      allow read, write: if false;
+    }
+    match /admins/{docId} {
+      allow read, write: if false;
+    }
+    match /email_queue/{docId} {
+      allow read, write: if false;
+    }
+    match /newsletter_campaigns/{docId} {
+      allow read, write: if false;
+    }
+    match /size_tool_events/{docId} {
+      allow read, write: if false;
+    }
+
+    // Deny everything else by default
     match /{document=**} {
       allow read, write: if false;
     }

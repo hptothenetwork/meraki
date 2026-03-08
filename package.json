@@ -8,7 +8,7 @@
     "start": "next start -p 3000",
     "lint": "eslint .",
     "firestore:bootstrap": "node scripts/bootstrap-firestore.mjs",
-    "firestore:indexes:deploy": "npx firebase-tools deploy --project mrk-fshn --only firestore:indexes"
+    "firestore:indexes:deploy": "npx firebase-tools deploy --project meraki-store-aaa97 --only firestore:indexes"
   },
   "engines": {
     "node": ">=20.18 <25",
