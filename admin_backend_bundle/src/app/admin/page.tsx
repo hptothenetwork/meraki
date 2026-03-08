@@ -1292,8 +1292,10 @@ export default function AdminPage() {
             { key: "media", label: "Media" },
             { key: "orders", label: "Orders" },
             { key: "giftCards", label: "Gift cards" },
+            { key: "blog", label: "Blog" },
             { key: "forms", label: "Forms" },
             { key: "trash", label: "Recycle" },
+            { key: "settings", label: "Settings" },
             { key: "password", label: "Security" },
           ].map((item) => (
             <button
@@ -1337,8 +1339,10 @@ export default function AdminPage() {
             { key: "media", label: "Media Library" },
             { key: "orders", label: "Orders" },
             { key: "giftCards", label: "Gift cards" },
+            { key: "blog", label: "Blog" },
             { key: "forms", label: "Form submissions" },
             { key: "trash", label: "Recycle Bin" },
+            { key: "settings", label: "Settings" },
             { key: "password", label: "Security" },
           ].map((item) => (
             <button
@@ -6709,7 +6713,9 @@ export default function AdminPage() {
           {activeSection === "editorialCustomers" && renderEditorialManagement()}
           {activeSection === "storefrontControls" && renderStorefrontControls()}
           {activeSection === "quickshop" && renderQuickShop()}
+          {activeSection === "blog" && renderBlog()}
           {activeSection === "password" && renderPassword()}
+          {activeSection === "settings" && renderPassword()}
           {activeSection === "trash" && renderTrash()}
         </div>
       </div>
