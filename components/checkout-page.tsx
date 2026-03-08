@@ -521,11 +521,6 @@ export function CheckoutPage() {
     </main>
   )
 }
-    const code = (codeRaw ?? giftCodeInput).trim().toUpperCase()
-    if (!code) {
-      setGiftCodeError("Enter a gift code first.")
-      return
-    }
 
     setGiftCodeBusy(true)
     setGiftCodeError("")
