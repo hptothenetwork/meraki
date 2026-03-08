@@ -520,3 +520,4 @@ export function CheckoutPage() {
       <SiteFooter />
     </main>
   )
+}
