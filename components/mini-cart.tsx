@@ -26,7 +26,7 @@ export function MiniCart() {
         role="dialog"
         aria-label="Shopping bag"
         aria-modal="true"
-        className={`fixed right-0 top-0 z-50 flex h-full w-full max-w-md flex-col bg-card shadow-xl transition-transform duration-300 ease-out ${
+        className={`fixed right-0 top-0 z-50 flex h-dvh w-full max-w-md flex-col bg-card shadow-xl transition-transform duration-300 ease-out ${
           isCartOpen ? "translate-x-0" : "translate-x-full"
         }`}
       >
@@ -84,7 +84,7 @@ export function MiniCart() {
                           onClick={() =>
                             updateQuantity(item.product.id, item.size, item.quantity - 1)
                           }
-                          className="text-muted-foreground transition-colors hover:text-foreground"
+                          className="flex h-8 w-8 items-center justify-center rounded text-muted-foreground transition-colors hover:text-foreground"
                           aria-label="Decrease quantity"
                         >
                           <Minus className="h-3.5 w-3.5" />
@@ -96,7 +96,7 @@ export function MiniCart() {
                           onClick={() =>
                             updateQuantity(item.product.id, item.size, item.quantity + 1)
                           }
-                          className="text-muted-foreground transition-colors hover:text-foreground"
+                          className="flex h-8 w-8 items-center justify-center rounded text-muted-foreground transition-colors hover:text-foreground"
                           aria-label="Increase quantity"
                         >
                           <Plus className="h-3.5 w-3.5" />

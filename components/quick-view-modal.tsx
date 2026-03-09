@@ -51,7 +51,7 @@ function QuickViewModalContent({ product, onClose }: { product: Product; onClose
         role="dialog"
         aria-modal="true"
         aria-label={`Quick view of ${product.name}`}
-        className="fixed left-1/2 top-1/2 z-50 w-[95vw] max-w-3xl -translate-x-1/2 -translate-y-1/2 overflow-hidden rounded-lg border border-border bg-card shadow-xl"
+        className="fixed left-1/2 top-1/2 z-50 w-[95vw] max-w-3xl -translate-x-1/2 -translate-y-1/2 overflow-y-auto rounded-lg border border-border bg-card shadow-xl max-h-[90dvh]"
       >
         <button
           onClick={onClose}

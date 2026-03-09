@@ -193,7 +193,7 @@ type Partner = {
 const orangeBtn =
   "rounded-full bg-mubah-orange px-4 py-2.5 text-sm font-semibold text-mubah-deep shadow-sm hover:bg-mubah-orange-alt transition active:scale-95 min-h-[44px] touch-manipulation";
 const ghostBtn = "rounded-full border border-mubah-mid px-4 py-2.5 text-sm text-mubah-cream hover:border-mubah-orange transition active:scale-95 min-h-[44px] touch-manipulation";
-const inputCls = "w-full rounded-lg border border-mubah-mid bg-mubah-mid/30 px-3 py-2 text-sm text-mubah-cream";
+const inputCls = "w-full rounded-lg border border-mubah-mid bg-mubah-mid/30 px-3 py-2 text-base text-mubah-cream";
 const orderStatusOptions: OrderStatus[] = ["pending", "processing", "shipped", "delivered", "cancelled"];
 const MAX_UPLOAD_FILES = 10;
 const INSTAGRAM_PROFILE_URL = "https://www.instagram.com/meraki_the_brand/";
@@ -1272,7 +1272,7 @@ export default function AdminPage() {
   };
 
   const renderMobileNav = () => (
-    <nav className="fixed bottom-0 left-0 right-0 z-40 border-t border-mubah-mid bg-mubah-deep/95 backdrop-blur-sm md:hidden safe-area-inset-bottom">
+    <nav className="fixed bottom-0 left-0 right-0 z-40 border-t border-mubah-mid bg-mubah-deep/95 backdrop-blur-sm md:hidden" style={{ paddingBottom: 'env(safe-area-inset-bottom, 0px)' }}>
       <div className="overflow-x-auto overflow-y-hidden">
         <div className="flex items-center gap-1 px-2 py-2 min-w-max">
           {[
@@ -6664,7 +6664,8 @@ export default function AdminPage() {
             value={token}
             onChange={(e) => setToken(e.target.value)}
             placeholder="Enter admin password"
-            className="w-full rounded-lg border border-mubah-mid bg-mubah-mid/30 px-3 py-2 text-mubah-cream"
+            autoComplete="current-password"
+            className="w-full rounded-lg border border-mubah-mid bg-mubah-mid/30 px-3 py-2 text-base text-mubah-cream"
           />
           <button
             onClick={async () => {
@@ -6683,7 +6684,7 @@ export default function AdminPage() {
               }
               setToken("");
             }}
-            className="w-full rounded-full bg-mubah-orange px-4 py-2 text-mubah-deep font-semibold"
+            className="w-full rounded-full bg-mubah-orange px-4 py-3 text-mubah-deep font-semibold min-h-[44px] touch-manipulation"
           >
             Login
           </button>
@@ -6696,7 +6697,7 @@ export default function AdminPage() {
     <main className="min-h-screen bg-mubah-deep text-mubah-cream flex">
       {renderSidebar()}
       {renderMobileNav()}
-      <div className="flex-1 overflow-y-auto pb-20 md:pb-0">
+      <div className="flex-1 overflow-y-auto pb-28 md:pb-0">
         {renderTopBar()}
         <div className="space-y-4 p-4">
           {activeSection === "dashboard" && renderDashboard()}
@@ -6729,7 +6730,10 @@ export default function AdminPage() {
         accept="image/*,video/*"
         multiple
         className="hidden"
-        onChange={(e) => onUploadMedia(e.target.files)}
+        onChange={(e) => {
+          onUploadMedia(e.target.files);
+          if (e.target) e.target.value = "";
+        }}
       />
       <input
         ref={productMediaInputRef}

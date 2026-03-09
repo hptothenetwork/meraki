@@ -55,7 +55,7 @@ export function ProductCard({ product, compact = false, onQuickView }: ProductCa
         {/* Add to bag button */}
         <button
           onClick={handleAdd}
-          className="absolute bottom-3 right-3 flex h-9 w-9 items-center justify-center rounded-full border border-border bg-card/90 text-foreground shadow-sm backdrop-blur-sm transition-all hover:bg-card hover:shadow-md"
+          className="absolute bottom-3 right-3 flex h-11 w-11 items-center justify-center rounded-full border border-border bg-card/90 text-foreground shadow-sm backdrop-blur-sm transition-all hover:bg-card hover:shadow-md"
           aria-label={`Add ${product.name} to bag`}
         >
           <Plus className="h-4 w-4" />

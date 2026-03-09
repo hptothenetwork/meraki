@@ -218,12 +218,12 @@ function CheckoutInner() {
           <article className="rounded-2xl border border-border bg-card p-5 md:p-6">
             <h2 className="font-serif text-2xl text-foreground">Billing details</h2>
             <div className="mt-4 grid gap-3 md:grid-cols-2">
-              <input required placeholder="Full name" value={form.billingFullName} onChange={(e) => setForm({ ...form, billingFullName: e.target.value })} className="rounded-lg border border-border bg-background px-3 py-2" />
-              <input required type="email" placeholder="Email" value={form.billingEmail} onChange={(e) => setForm({ ...form, billingEmail: e.target.value })} className="rounded-lg border border-border bg-background px-3 py-2" />
-              <input required placeholder="Phone" value={form.billingPhone} onChange={(e) => setForm({ ...form, billingPhone: e.target.value })} className="rounded-lg border border-border bg-background px-3 py-2" />
-              <input required placeholder="City" value={form.billingCity} onChange={(e) => setForm({ ...form, billingCity: e.target.value })} className="rounded-lg border border-border bg-background px-3 py-2" />
+              <input required autoComplete="name" placeholder="Full name" value={form.billingFullName} onChange={(e) => setForm({ ...form, billingFullName: e.target.value })} className="rounded-lg border border-border bg-background px-3 py-2 text-base" />
+              <input required type="email" inputMode="email" autoComplete="email" placeholder="Email" value={form.billingEmail} onChange={(e) => setForm({ ...form, billingEmail: e.target.value })} className="rounded-lg border border-border bg-background px-3 py-2 text-base" />
+              <input required type="tel" inputMode="tel" autoComplete="tel" placeholder="Phone" value={form.billingPhone} onChange={(e) => setForm({ ...form, billingPhone: e.target.value })} className="rounded-lg border border-border bg-background px-3 py-2 text-base" />
+              <input required autoComplete="address-level2" placeholder="City" value={form.billingCity} onChange={(e) => setForm({ ...form, billingCity: e.target.value })} className="rounded-lg border border-border bg-background px-3 py-2 text-base" />
             </div>
-            <input required placeholder="Address" value={form.billingAddress} onChange={(e) => setForm({ ...form, billingAddress: e.target.value })} className="mt-3 w-full rounded-lg border border-border bg-background px-3 py-2" />
+            <input required autoComplete="street-address" placeholder="Address" value={form.billingAddress} onChange={(e) => setForm({ ...form, billingAddress: e.target.value })} className="mt-3 w-full rounded-lg border border-border bg-background px-3 py-2 text-base" />
           </article>
 
           <article className="rounded-2xl border border-border bg-card p-5 md:p-6">
@@ -236,11 +236,11 @@ function CheckoutInner() {
             </div>
             {(!sameAsBilling || isInternational) && (
               <div className="mt-4 grid gap-3 md:grid-cols-2">
-                <input required={!sameAsBilling} placeholder="Recipient name" value={form.shippingRecipientName} onChange={(e) => setForm({ ...form, shippingRecipientName: e.target.value })} className="rounded-lg border border-border bg-background px-3 py-2" />
-                <input required={!sameAsBilling} placeholder="Phone" value={form.shippingPhone} onChange={(e) => setForm({ ...form, shippingPhone: e.target.value })} className="rounded-lg border border-border bg-background px-3 py-2" />
-                <input required={!sameAsBilling} placeholder="City" value={form.shippingCity} onChange={(e) => setForm({ ...form, shippingCity: e.target.value })} className="rounded-lg border border-border bg-background px-3 py-2" />
-                <input required={!sameAsBilling} placeholder="Country" value={form.shippingCountry} onChange={(e) => setForm({ ...form, shippingCountry: e.target.value })} className="rounded-lg border border-border bg-background px-3 py-2" />
-                <input required={!sameAsBilling} placeholder="Address" value={form.shippingAddress} onChange={(e) => setForm({ ...form, shippingAddress: e.target.value })} className="md:col-span-2 rounded-lg border border-border bg-background px-3 py-2" />
+                <input required={!sameAsBilling} autoComplete="name" placeholder="Recipient name" value={form.shippingRecipientName} onChange={(e) => setForm({ ...form, shippingRecipientName: e.target.value })} className="rounded-lg border border-border bg-background px-3 py-2 text-base" />
+                <input required={!sameAsBilling} type="tel" inputMode="tel" autoComplete="tel" placeholder="Phone" value={form.shippingPhone} onChange={(e) => setForm({ ...form, shippingPhone: e.target.value })} className="rounded-lg border border-border bg-background px-3 py-2 text-base" />
+                <input required={!sameAsBilling} autoComplete="address-level2" placeholder="City" value={form.shippingCity} onChange={(e) => setForm({ ...form, shippingCity: e.target.value })} className="rounded-lg border border-border bg-background px-3 py-2 text-base" />
+                <input required={!sameAsBilling} autoComplete="country-name" placeholder="Country" value={form.shippingCountry} onChange={(e) => setForm({ ...form, shippingCountry: e.target.value })} className="rounded-lg border border-border bg-background px-3 py-2 text-base" />
+                <input required={!sameAsBilling} autoComplete="street-address" placeholder="Address" value={form.shippingAddress} onChange={(e) => setForm({ ...form, shippingAddress: e.target.value })} className="md:col-span-2 rounded-lg border border-border bg-background px-3 py-2 text-base" />
                 {isInternational && (
                   <p className="md:col-span-2 rounded-lg bg-accent/10 border border-accent/40 px-3 py-2 text-xs text-muted-foreground">
                     International order detected — our team will contact you with the shipping cost before processing your order.
@@ -255,7 +255,7 @@ function CheckoutInner() {
                 placeholder="e.g. Landmark near your address, gate code, best time to call, building name…"
                 value={form.shippingSpecialNote}
                 onChange={(e) => setForm({ ...form, shippingSpecialNote: e.target.value })}
-                className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm placeholder:text-muted-foreground resize-none"
+                className="w-full rounded-lg border border-border bg-background px-3 py-2 text-base placeholder:text-muted-foreground resize-none"
               />
               <p className="mt-1 text-xs text-muted-foreground">Helps our team find you and deliver accurately — applies to both local and international orders.</p>
             </div>
@@ -358,7 +358,7 @@ function CheckoutInner() {
               rows={4}
               value={form.notes}
               onChange={(e) => setForm({ ...form, notes: e.target.value })}
-              className="mt-4 w-full rounded-lg border border-border bg-background px-3 py-2"
+              className="mt-4 w-full rounded-lg border border-border bg-background px-3 py-2 text-base"
             />
             <label className="mt-4 flex items-start gap-2 text-sm text-muted-foreground">
               <input type="checkbox" checked={confirmed} onChange={(e) => setConfirmed(e.target.checked)} />
@@ -397,7 +397,7 @@ function CheckoutInner() {
                 setGiftCodeError("")
               }}
               placeholder="Enter code"
-              className="w-full rounded-lg border border-border bg-card px-3 py-2 text-sm"
+              className="w-full rounded-lg border border-border bg-card px-3 py-2 text-base"
             />
             <button
               type="button"
