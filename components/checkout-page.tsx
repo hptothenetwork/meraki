@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useMemo, useRef, useState } from "react"
+import { useEffect, useRef, useState } from "react"
 import { useRouter } from "next/navigation"
 import Image from "next/image"
 import { CheckCircle2, Package, CreditCard } from "lucide-react"
@@ -26,18 +26,18 @@ type AppliedGiftCode = {
 
 const paymentOptions: PaymentOption[] = [
   {
-    id: "cash_on_delivery",
-    method: "cash_on_delivery",
-    title: "Cash on Delivery",
-    note: "Pay when your order arrives",
-    logos: [],
-  },
-  {
     id: "pesapal",
     method: "card",
     title: "Pay Online via PesaPal",
     note: "Card, M-Pesa, Airtel Money, MTN MoMo & more",
     logos: ["/payments/visa.PNG", "/payments/master.PNG", "/payments/voda.png", "/payments/airtel.PNG"],
+  },
+  {
+    id: "cash_on_delivery",
+    method: "cash_on_delivery",
+    title: "Cash on Delivery",
+    note: "Pay when your order arrives",
+    logos: [],
   },
 ]
 
@@ -46,7 +46,8 @@ function CheckoutInner() {
   const { items, totalPrice } = useCart()
   const [submitting, setSubmitting] = useState(false)
   const [submitError, setSubmitError] = useState("")
-  const [sameAsBilling, setSameAsBilling] = useState(true)
+  const [billingMatchesShipping, setBillingMatchesShipping] = useState(true)
+  const [deliveryScope, setDeliveryScope] = useState<"local" | "international">("local")
   const [confirmed, setConfirmed] = useState(false)
   const [captchaToken, setCaptchaToken] = useState("")
   const captchaRef = useRef<TurnstileInstance | null>(null)
@@ -56,49 +57,31 @@ function CheckoutInner() {
   const [giftCodeError, setGiftCodeError] = useState("")
   const [giftCodeBusy, setGiftCodeBusy] = useState(false)
   const [form, setForm] = useState({
-    billingFullName: "",
-    billingEmail: "",
-    billingPhone: "",
-    billingAddress: "",
-    billingCity: "",
-    billingCountry: "Tanzania",
+    // Shipping
     shippingRecipientName: "",
     shippingPhone: "",
     shippingAddress: "",
     shippingCity: "",
+    shippingPostalCode: "",
     shippingCountry: "Tanzania",
     shippingSpecialNote: "",
+    // Billing
+    billingEmail: "",
+    billingFullName: "",
+    billingPhone: "",
+    billingAddress: "",
+    billingCity: "",
+    billingPostalCode: "",
+    billingCountry: "Tanzania",
+    // General
     notes: "",
-    paymentChannel: "cash_on_delivery" as PaymentOption["id"],
+    paymentChannel: "pesapal" as PaymentOption["id"],
   })
 
-  // TODO(shipping-api): replace this flat mock rule with live shipping quotes once courier API keys are ready.
-  const shipping = totalPrice >= 250000 ? 0 : 10000
+  const isInternational = deliveryScope === "international"
   const discountAmount = appliedGiftCode?.discountAmount || 0
-  const total = Math.max(0, totalPrice + shipping - discountAmount)
+  const estimatedTotal = Math.max(0, totalPrice - discountAmount)
   const selectedOption = paymentOptions.find((o) => o.id === form.paymentChannel) ?? paymentOptions[0]
-
-  const shippingDetails = useMemo(
-    () =>
-      sameAsBilling
-        ? {
-            recipientName: form.billingFullName,
-            phone: form.billingPhone,
-            address: form.billingAddress,
-            city: form.billingCity,
-            country: form.billingCountry,
-          }
-        : {
-            recipientName: form.shippingRecipientName,
-            phone: form.shippingPhone,
-            address: form.shippingAddress,
-            city: form.shippingCity,
-            country: form.shippingCountry,
-          },
-    [form, sameAsBilling],
-  )
-
-  const isInternational = (shippingDetails.country || "").trim().toLowerCase() !== "tanzania"
 
   const applyGiftCode = async (codeRaw?: string) => {
     const code = (codeRaw ?? giftCodeInput).trim().toUpperCase()
@@ -160,30 +143,50 @@ function CheckoutInner() {
       return
     }
 
+    const effectiveBilling = billingMatchesShipping
+      ? {
+          fullName: form.shippingRecipientName,
+          email: form.billingEmail,
+          phone: form.shippingPhone,
+          address: form.shippingAddress,
+          city: form.shippingCity,
+          postalCode: form.shippingPostalCode,
+          country: form.shippingCountry,
+        }
+      : {
+          fullName: form.billingFullName,
+          email: form.billingEmail,
+          phone: form.billingPhone,
+          address: form.billingAddress,
+          city: form.billingCity,
+          postalCode: form.billingPostalCode,
+          country: form.billingCountry,
+        }
+
     setSubmitting(true)
     setSubmitError("")
-    // TODO(payments-api): this only creates an order draft. Real payment intent/session creation should happen here.
     const res = await fetch("/api/orders", {
       method: "POST",
       headers: { "content-type": "application/json" },
       body: JSON.stringify({
         customer: {
-          fullName: form.billingFullName,
-          email: form.billingEmail,
-          phone: form.billingPhone,
-          address: form.billingAddress,
-          city: form.billingCity,
-          country: form.billingCountry,
+          fullName: effectiveBilling.fullName,
+          email: effectiveBilling.email,
+          phone: effectiveBilling.phone,
+          address: effectiveBilling.address,
+          city: effectiveBilling.city,
+          country: effectiveBilling.country,
         },
-        billingDetails: {
-          fullName: form.billingFullName,
-          email: form.billingEmail,
-          phone: form.billingPhone,
-          address: form.billingAddress,
-          city: form.billingCity,
-          country: form.billingCountry,
+        billingDetails: effectiveBilling,
+        shippingDetails: {
+          recipientName: form.shippingRecipientName,
+          phone: form.shippingPhone,
+          address: form.shippingAddress,
+          city: form.shippingCity,
+          postalCode: form.shippingPostalCode,
+          country: form.shippingCountry,
+          specialNote: form.shippingSpecialNote,
         },
-        shippingDetails: { ...shippingDetails, specialNote: form.shippingSpecialNote },
         notes: form.notes,
         paymentMethod: selectedOption.method === "cash_on_delivery" ? "cash_on_delivery" : "card",
         paymentChannel: form.paymentChannel,
@@ -212,149 +215,142 @@ function CheckoutInner() {
     <section className="mx-auto grid max-w-7xl gap-8 px-4 py-10 lg:grid-cols-[1.2fr_0.8fr] md:px-8">
       <div>
         <h1 className="font-serif text-4xl text-foreground">Checkout</h1>
-        <p className="mt-2 text-sm text-muted-foreground">Billing, shipping and secure payment confirmation.</p>
+        <p className="mt-2 text-sm text-muted-foreground">Complete your shipping, billing, and payment details below.</p>
 
         <form onSubmit={submit} className="mt-6 space-y-6">
-          <article className="rounded-2xl border border-border bg-card p-5 md:p-6">
-            <h2 className="font-serif text-2xl text-foreground">Billing details</h2>
-            <div className="mt-4 grid gap-3 md:grid-cols-2">
-              <input required autoComplete="name" placeholder="Full name" value={form.billingFullName} onChange={(e) => setForm({ ...form, billingFullName: e.target.value })} className="rounded-lg border border-border bg-background px-3 py-2 text-base" />
-              <input required type="email" inputMode="email" autoComplete="email" placeholder="Email" value={form.billingEmail} onChange={(e) => setForm({ ...form, billingEmail: e.target.value })} className="rounded-lg border border-border bg-background px-3 py-2 text-base" />
-              <input required type="tel" inputMode="tel" autoComplete="tel" placeholder="Phone" value={form.billingPhone} onChange={(e) => setForm({ ...form, billingPhone: e.target.value })} className="rounded-lg border border-border bg-background px-3 py-2 text-base" />
-              <input required autoComplete="address-level2" placeholder="City" value={form.billingCity} onChange={(e) => setForm({ ...form, billingCity: e.target.value })} className="rounded-lg border border-border bg-background px-3 py-2 text-base" />
-            </div>
-            <input required autoComplete="street-address" placeholder="Address" value={form.billingAddress} onChange={(e) => setForm({ ...form, billingAddress: e.target.value })} className="mt-3 w-full rounded-lg border border-border bg-background px-3 py-2 text-base" />
-          </article>
 
+          {/* 1 — Shipping details */}
           <article className="rounded-2xl border border-border bg-card p-5 md:p-6">
-            <div className="flex items-center justify-between gap-4">
-              <h2 className="font-serif text-2xl text-foreground">Shipping details</h2>
-              <label className="flex items-center gap-2 text-xs text-muted-foreground">
-                <input type="checkbox" checked={sameAsBilling} onChange={(e) => setSameAsBilling(e.target.checked)} />
-                Same as billing
-              </label>
+            <h2 className="font-serif text-2xl text-foreground">Shipping details</h2>
+            <p className="mt-1 text-sm text-muted-foreground">Where should we deliver your order?</p>
+
+            <div className="mt-4 flex gap-3">
+              <button
+                type="button"
+                onClick={() => { setDeliveryScope("local"); setForm((f) => ({ ...f, shippingCountry: "Tanzania" })) }}
+                className={`flex-1 rounded-xl border px-4 py-2 text-sm font-medium transition-colors ${deliveryScope === "local" ? "border-foreground bg-foreground text-background" : "border-border text-muted-foreground"}`}
+              >
+                Local — Tanzania
+              </button>
+              <button
+                type="button"
+                onClick={() => { setDeliveryScope("international"); setForm((f) => ({ ...f, shippingCountry: "" })) }}
+                className={`flex-1 rounded-xl border px-4 py-2 text-sm font-medium transition-colors ${deliveryScope === "international" ? "border-foreground bg-foreground text-background" : "border-border text-muted-foreground"}`}
+              >
+                International
+              </button>
             </div>
-            {(!sameAsBilling || isInternational) && (
-              <div className="mt-4 grid gap-3 md:grid-cols-2">
-                <input required={!sameAsBilling} autoComplete="name" placeholder="Recipient name" value={form.shippingRecipientName} onChange={(e) => setForm({ ...form, shippingRecipientName: e.target.value })} className="rounded-lg border border-border bg-background px-3 py-2 text-base" />
-                <input required={!sameAsBilling} type="tel" inputMode="tel" autoComplete="tel" placeholder="Phone" value={form.shippingPhone} onChange={(e) => setForm({ ...form, shippingPhone: e.target.value })} className="rounded-lg border border-border bg-background px-3 py-2 text-base" />
-                <input required={!sameAsBilling} autoComplete="address-level2" placeholder="City" value={form.shippingCity} onChange={(e) => setForm({ ...form, shippingCity: e.target.value })} className="rounded-lg border border-border bg-background px-3 py-2 text-base" />
-                <input required={!sameAsBilling} autoComplete="country-name" placeholder="Country" value={form.shippingCountry} onChange={(e) => setForm({ ...form, shippingCountry: e.target.value })} className="rounded-lg border border-border bg-background px-3 py-2 text-base" />
-                <input required={!sameAsBilling} autoComplete="street-address" placeholder="Address" value={form.shippingAddress} onChange={(e) => setForm({ ...form, shippingAddress: e.target.value })} className="md:col-span-2 rounded-lg border border-border bg-background px-3 py-2 text-base" />
-                {isInternational && (
-                  <p className="md:col-span-2 rounded-lg bg-accent/10 border border-accent/40 px-3 py-2 text-xs text-muted-foreground">
-                    International order detected — our team will contact you with the shipping cost before processing your order.
-                  </p>
-                )}
-              </div>
+
+            {isInternational && (
+              <p className="mt-3 rounded-lg border border-accent/40 bg-accent/10 px-3 py-2 text-xs text-muted-foreground">
+                International order — our team will contact you with the shipping cost before processing and dispatching your order.
+              </p>
             )}
+
+            <div className="mt-4 grid gap-3 md:grid-cols-2">
+              <input required autoComplete="name" placeholder="Recipient full name" value={form.shippingRecipientName} onChange={(e) => setForm({ ...form, shippingRecipientName: e.target.value })} className="rounded-lg border border-border bg-background px-3 py-2 text-base" />
+              <input required type="tel" inputMode="tel" autoComplete="tel" placeholder="Phone number" value={form.shippingPhone} onChange={(e) => setForm({ ...form, shippingPhone: e.target.value })} className="rounded-lg border border-border bg-background px-3 py-2 text-base" />
+              <input required autoComplete="street-address" placeholder="Address / Street" value={form.shippingAddress} onChange={(e) => setForm({ ...form, shippingAddress: e.target.value })} className="md:col-span-2 rounded-lg border border-border bg-background px-3 py-2 text-base" />
+              <input required autoComplete="address-level2" placeholder="City / Town" value={form.shippingCity} onChange={(e) => setForm({ ...form, shippingCity: e.target.value })} className="rounded-lg border border-border bg-background px-3 py-2 text-base" />
+              <input autoComplete="postal-code" placeholder="Postal code (optional)" value={form.shippingPostalCode} onChange={(e) => setForm({ ...form, shippingPostalCode: e.target.value })} className="rounded-lg border border-border bg-background px-3 py-2 text-base" />
+              <input
+                required={isInternational}
+                autoComplete="country-name"
+                placeholder={deliveryScope === "local" ? "Tanzania" : "Country"}
+                readOnly={deliveryScope === "local"}
+                value={form.shippingCountry}
+                onChange={(e) => setForm({ ...form, shippingCountry: e.target.value })}
+                className={`md:col-span-2 rounded-lg border border-border bg-background px-3 py-2 text-base ${deliveryScope === "local" ? "cursor-not-allowed opacity-60" : ""}`}
+              />
+            </div>
+
             <div className="mt-4">
-              <label className="block text-xs font-medium uppercase tracking-wide text-muted-foreground mb-1">Special delivery note (optional)</label>
+              <label className="mb-1 block text-xs font-medium uppercase tracking-wide text-muted-foreground">Special delivery note (optional)</label>
               <textarea
-                rows={3}
-                placeholder="e.g. Landmark near your address, gate code, best time to call, building name…"
+                rows={2}
+                placeholder="Landmark, gate code, best delivery time, building name…"
                 value={form.shippingSpecialNote}
                 onChange={(e) => setForm({ ...form, shippingSpecialNote: e.target.value })}
-                className="w-full rounded-lg border border-border bg-background px-3 py-2 text-base placeholder:text-muted-foreground resize-none"
+                className="w-full resize-none rounded-lg border border-border bg-background px-3 py-2 text-base placeholder:text-muted-foreground"
               />
-              <p className="mt-1 text-xs text-muted-foreground">Helps our team find you and deliver accurately — applies to both local and international orders.</p>
             </div>
           </article>
 
+          {/* 2 — Billing details */}
+          <article className="rounded-2xl border border-border bg-card p-5 md:p-6">
+            <div className="flex items-center justify-between gap-4">
+              <h2 className="font-serif text-2xl text-foreground">Billing details</h2>
+              <label className="flex cursor-pointer items-center gap-2 text-xs text-muted-foreground">
+                <input type="checkbox" checked={billingMatchesShipping} onChange={(e) => setBillingMatchesShipping(e.target.checked)} />
+                Same as shipping
+              </label>
+            </div>
+            <div className="mt-4 grid gap-3 md:grid-cols-2">
+              <input required type="email" inputMode="email" autoComplete="email" placeholder="Email address" value={form.billingEmail} onChange={(e) => setForm({ ...form, billingEmail: e.target.value })} className="md:col-span-2 rounded-lg border border-border bg-background px-3 py-2 text-base" />
+              {!billingMatchesShipping && (
+                <>
+                  <input required autoComplete="name" placeholder="Full name" value={form.billingFullName} onChange={(e) => setForm({ ...form, billingFullName: e.target.value })} className="rounded-lg border border-border bg-background px-3 py-2 text-base" />
+                  <input required type="tel" inputMode="tel" autoComplete="tel" placeholder="Phone" value={form.billingPhone} onChange={(e) => setForm({ ...form, billingPhone: e.target.value })} className="rounded-lg border border-border bg-background px-3 py-2 text-base" />
+                  <input required autoComplete="street-address" placeholder="Address" value={form.billingAddress} onChange={(e) => setForm({ ...form, billingAddress: e.target.value })} className="md:col-span-2 rounded-lg border border-border bg-background px-3 py-2 text-base" />
+                  <input required autoComplete="address-level2" placeholder="City / Town" value={form.billingCity} onChange={(e) => setForm({ ...form, billingCity: e.target.value })} className="rounded-lg border border-border bg-background px-3 py-2 text-base" />
+                  <input autoComplete="postal-code" placeholder="Postal code (optional)" value={form.billingPostalCode} onChange={(e) => setForm({ ...form, billingPostalCode: e.target.value })} className="rounded-lg border border-border bg-background px-3 py-2 text-base" />
+                  <input required autoComplete="country-name" placeholder="Country" value={form.billingCountry} onChange={(e) => setForm({ ...form, billingCountry: e.target.value })} className="md:col-span-2 rounded-lg border border-border bg-background px-3 py-2 text-base" />
+                </>
+              )}
+              {billingMatchesShipping && (
+                <p className="md:col-span-2 text-xs text-muted-foreground">Billing address will be taken from your shipping details above.</p>
+              )}
+            </div>
+          </article>
+
+          {/* 3 — Payment method */}
           <article className="rounded-2xl border border-border bg-card p-5 md:p-6">
             <h2 className="font-serif text-2xl text-foreground">Payment method</h2>
-            <p className="mt-2 text-sm text-muted-foreground">Choose how you would like to pay.</p>
+            <p className="mt-2 text-sm text-muted-foreground">Choose how you would like to pay for your order.</p>
             <div className="mt-4 grid gap-3">
               {paymentOptions.map((option) => (
                 <label
                   key={option.id}
-                  className={`flex cursor-pointer items-center justify-between rounded-xl border px-4 py-3 transition-colors ${
-                    form.paymentChannel === option.id ? "border-foreground bg-foreground/5" : "border-border"
-                  }`}
+                  className={`flex cursor-pointer flex-col rounded-xl border px-4 py-3 transition-colors ${form.paymentChannel === option.id ? "border-foreground bg-foreground/5" : "border-border"}`}
                 >
-                  <div className="flex items-center gap-3">
-                    <input
-                      type="radio"
-                      name="paymentChannel"
-                      checked={form.paymentChannel === option.id}
-                      onChange={() => setForm({ ...form, paymentChannel: option.id })}
-                    />
-                    <div className="flex items-center gap-2">
-                      {option.id === "cash_on_delivery" ? (
-                        <Package className="h-4 w-4 text-foreground" />
-                      ) : (
-                        <CreditCard className="h-4 w-4 text-foreground" />
-                      )}
-                      <div>
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                      <input type="radio" name="paymentChannel" checked={form.paymentChannel === option.id} onChange={() => setForm({ ...form, paymentChannel: option.id })} />
+                      <div className="flex items-center gap-2">
+                        {option.id === "cash_on_delivery" ? (
+                          <Package className="h-4 w-4 text-foreground" />
+                        ) : (
+                          <CreditCard className="h-4 w-4 text-foreground" />
+                        )}
                         <p className="text-sm font-medium text-foreground">{option.title}</p>
-                        <p className="text-xs text-muted-foreground">{option.note}</p>
                       </div>
                     </div>
+                    {option.logos.length > 0 && (
+                      <div className="flex items-center gap-1">
+                        {option.logos.map((logoSrc) => (
+                          <Image key={logoSrc} src={logoSrc} alt="payment logo" width={36} height={22} unoptimized className="h-5 w-9 rounded border border-border bg-background object-contain p-0.5" />
+                        ))}
+                      </div>
+                    )}
                   </div>
-                  {option.logos.length > 0 && (
-                    <div className="flex items-center gap-1">
-                      {option.logos.map((logoSrc) => (
-                        <Image
-                          key={logoSrc}
-                          src={logoSrc}
-                          alt="payment logo"
-                          width={36}
-                          height={22}
-                          unoptimized
-                          className="h-5 w-9 rounded border border-border bg-background object-contain p-0.5"
-                        />
-                      ))}
-                    </div>
+                  {form.paymentChannel === option.id && (
+                    <p className="ml-7 mt-2 text-xs text-muted-foreground">
+                      {option.id === "pesapal"
+                        ? "After placing your order you will be securely redirected to PesaPal's payment page. Accepts Visa, Mastercard, M-Pesa, Airtel Money, MTN MoMo, and more."
+                        : "After placing your order, our team will WhatsApp or call you to confirm your delivery details and arrange payment on arrival."}
+                    </p>
                   )}
                 </label>
               ))}
             </div>
-            {form.paymentChannel === "pesapal" && (
-              <p className="mt-3 text-xs text-muted-foreground">
-                You will be redirected to PesaPal&apos;s secure payment page after placing your order.
-              </p>
-            )}
           </article>
 
-          <article className="rounded-2xl border border-border bg-card p-5 md:p-6">
-            <h2 className="font-serif text-2xl text-foreground">Shipping</h2>
-            {isInternational ? (
-              <>
-                <p className="mt-2 text-sm text-muted-foreground">You have entered an international destination. Please make sure all your shipping details above are filled in correctly.</p>
-                <div className="mt-4 rounded-xl border border-accent/50 bg-accent/10 px-4 py-3">
-                  <p className="text-sm font-medium text-foreground">International shipping — cost to be confirmed</p>
-                  <p className="mt-1 text-xs text-muted-foreground">Our team will review your order and reach out to you via email or phone with the exact international shipping cost before your order is processed and dispatched.</p>
-                </div>
-              </>
-            ) : (
-              <>
-                <p className="mt-2 text-sm text-muted-foreground">Domestic delivery rates for Tanzania.</p>
-                <div className="mt-4 grid gap-3 md:grid-cols-3">
-                  <div className="rounded-xl border border-border bg-background p-3">
-                    <p className="text-xs uppercase tracking-wide text-muted-foreground">Dar es Salaam</p>
-                    <p className="mt-2 text-lg font-semibold text-foreground">TZS 10,000</p>
-                    <p className="text-xs text-muted-foreground">Same/next day zone</p>
-                  </div>
-                  <div className="rounded-xl border border-border bg-background p-3">
-                    <p className="text-xs uppercase tracking-wide text-muted-foreground">Other cities</p>
-                    <p className="mt-2 text-lg font-semibold text-foreground">TZS 15,000</p>
-                    <p className="text-xs text-muted-foreground">1–3 business days</p>
-                  </div>
-                  <div className="rounded-xl border border-border bg-background p-3">
-                    <p className="text-xs uppercase tracking-wide text-muted-foreground">Express</p>
-                    <p className="mt-2 text-lg font-semibold text-foreground">TZS 25,000</p>
-                    <p className="text-xs text-muted-foreground">Priority handling</p>
-                  </div>
-                </div>
-                <p className="mt-3 text-xs text-muted-foreground">Free shipping on orders from TZS 250,000.</p>
-              </>
-            )}
-          </article>
-
+          {/* 4 — Confirm checkout */}
           <article className="rounded-2xl border border-border bg-card p-5 md:p-6">
             <h2 className="font-serif text-2xl text-foreground">Confirm checkout</h2>
+            <p className="mt-1 text-sm text-muted-foreground">Almost done! Add any extra delivery instructions or notes for our team below.</p>
             <textarea
-              placeholder="Order notes (optional)"
+              placeholder="Extra delivery instructions or order notes (optional)"
               rows={4}
               value={form.notes}
               onChange={(e) => setForm({ ...form, notes: e.target.value })}
@@ -425,14 +421,15 @@ function CheckoutInner() {
         </div>
         <div className="mt-5 border-t border-border pt-3 text-sm">
           <div className="flex justify-between"><span>Subtotal</span><span>TZS {totalPrice.toLocaleString("en-US")}</span></div>
-          <div className="mt-1 flex justify-between"><span>Shipping</span><span>{shipping === 0 ? "Free" : `TZS ${shipping.toLocaleString("en-US")}`}</span></div>
+          <div className="mt-1 flex justify-between text-muted-foreground"><span>Shipping</span><span>TBA</span></div>
           {discountAmount > 0 && (
             <div className="mt-1 flex justify-between text-green-700">
               <span>Discount ({appliedGiftCode?.code})</span>
               <span>- TZS {discountAmount.toLocaleString("en-US")}</span>
             </div>
           )}
-          <div className="mt-2 flex justify-between font-semibold"><span>Total</span><span>TZS {total.toLocaleString("en-US")}</span></div>
+          <div className="mt-2 flex justify-between font-semibold"><span>Estimated total</span><span>TZS {estimatedTotal.toLocaleString("en-US")}</span></div>
+          <p className="mt-1 text-xs text-muted-foreground">Final total includes shipping, confirmed after order placement.</p>
         </div>
         <div className="mt-5 rounded-xl border border-border bg-background p-3 text-xs text-muted-foreground">
           <div className="flex items-center gap-2 text-foreground">
