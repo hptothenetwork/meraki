@@ -29,8 +29,11 @@ export type DiscountCodeValidation =
 
 const collectionName = "gift_cards"
 
-function normalizeCode(code: string) {
-  return code.trim().toUpperCase()
+// Only uppercase alphanumeric + hyphens are valid code characters.
+const VALID_CODE_RE = /^[A-Z0-9\-]{4,64}$/
+
+function normalizeCode(code: string): string {
+  return code.trim().toUpperCase().replace(/[^A-Z0-9\-]/g, "")
 }
 
 function toNumber(value: unknown): number | null {
@@ -75,7 +78,9 @@ export async function validateDiscountCode(
   subtotal: number,
 ): Promise<DiscountCodeValidation> {
   const normalizedCode = normalizeCode(code)
-  if (!normalizedCode) return { valid: false, error: "Enter a code first." }
+  if (!normalizedCode || !VALID_CODE_RE.test(normalizedCode)) {
+    return { valid: false, error: "Invalid or expired code." }
+  }
 
   const normalizedCurrency = normalizeCurrency(currency)
   const subtotalValue = toCurrencyValue(subtotal, normalizedCurrency)
@@ -85,38 +90,39 @@ export async function validateDiscountCode(
 
   const snap = await db.collection(collectionName).doc(normalizedCode).get()
   if (!snap.exists) {
-    return { valid: false, error: "Code not found." }
+    // Generic message — do not reveal whether the code exists.
+    return { valid: false, error: "Invalid or expired code." }
   }
 
   const codeDoc = snap.data() as GiftCodeDoc
   if (codeDoc.status !== "active") {
-    return { valid: false, error: "Code is not active." }
+    return { valid: false, error: "Invalid or expired code." }
   }
 
   if (codeDoc.expiryDate) {
     const expiry = new Date(codeDoc.expiryDate)
     if (!Number.isNaN(expiry.valueOf()) && expiry.getTime() < Date.now()) {
-      return { valid: false, error: "Code has expired." }
+      return { valid: false, error: "Invalid or expired code." }
     }
   }
 
   const kind = codeDoc.kind || (codeDoc.discountByCurrency ? "discount_code" : "gift_card")
   if (kind !== "discount_code") {
-    return { valid: false, error: "This code cannot be used at checkout." }
+    return { valid: false, error: "Invalid or expired code." }
   }
 
   const discountType: DiscountType = codeDoc.discountType === "percent" ? "percent" : "amount"
   const discounts = normalizeDiscountMap(codeDoc.discountByCurrency)
   const discountValue = pickDiscountValue(discounts, normalizedCurrency)
   if (!(discountValue > 0)) {
-    return { valid: false, error: `Code has no ${normalizedCurrency} discount configured.` }
+    return { valid: false, error: "Invalid or expired code." }
   }
 
   const rawDiscountAmount =
     discountType === "percent" ? subtotalValue * (discountValue / 100) : discountValue
   const discountAmount = toCurrencyValue(Math.min(subtotalValue, rawDiscountAmount), normalizedCurrency)
   if (!(discountAmount > 0)) {
-    return { valid: false, error: "Code discount is invalid." }
+    return { valid: false, error: "Invalid or expired code." }
   }
 
   const totalAfterDiscount = toCurrencyValue(

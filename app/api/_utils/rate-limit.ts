@@ -11,12 +11,27 @@ type Options = {
   max: number
 }
 
+type FailureEntry = {
+  count: number
+  windowStart: number
+  lockedUntil: number
+}
+
 declare global {
   var __merakiRateLimitStore: Map<string, Bucket> | undefined
+  var __merakiFailureStore: Map<string, FailureEntry> | undefined
 }
 
 const store = globalThis.__merakiRateLimitStore ?? new Map<string, Bucket>()
 globalThis.__merakiRateLimitStore = store
+
+const failureStore = globalThis.__merakiFailureStore ?? new Map<string, FailureEntry>()
+globalThis.__merakiFailureStore = failureStore
+
+// After FAILURE_MAX bad attempts within FAILURE_WINDOW_MS, the IP is locked out for LOCKOUT_MS.
+const FAILURE_WINDOW_MS = 10 * 60_000 // 10 minutes
+const FAILURE_MAX = 5
+const LOCKOUT_MS = 15 * 60_000 // 15 minutes
 
 function getClientIp(req: NextRequest): string {
   const forwarded = req.headers.get("x-forwarded-for")
@@ -62,4 +77,43 @@ export function checkRateLimit(
   current.count += 1
   store.set(bucketKey, current)
   return { allowed: true, retryAfterSeconds: 0 }
+}
+
+/**
+ * Call this after a failed code attempt. After FAILURE_MAX failures within
+ * FAILURE_WINDOW_MS, the IP is locked out for LOCKOUT_MS.
+ */
+export function trackFailure(req: NextRequest, namespace: string): void {
+  const ip = getClientIp(req)
+  const key = `${namespace}:fail:${ip}`
+  const now = Date.now()
+  const entry = failureStore.get(key)
+
+  if (!entry || entry.windowStart + FAILURE_WINDOW_MS < now) {
+    failureStore.set(key, { count: 1, windowStart: now, lockedUntil: 0 })
+    return
+  }
+
+  entry.count += 1
+  if (entry.count >= FAILURE_MAX) {
+    entry.lockedUntil = now + LOCKOUT_MS
+  }
+  failureStore.set(key, entry)
+}
+
+/**
+ * Returns true (with retryAfterSeconds) if the IP is in the failure lockout period.
+ */
+export function isLockedOut(req: NextRequest, namespace: string): { locked: boolean; retryAfterSeconds: number } {
+  const ip = getClientIp(req)
+  const key = `${namespace}:fail:${ip}`
+  const now = Date.now()
+  const entry = failureStore.get(key)
+  if (!entry || entry.lockedUntil === 0) return { locked: false, retryAfterSeconds: 0 }
+  if (entry.lockedUntil > now) {
+    return { locked: true, retryAfterSeconds: Math.ceil((entry.lockedUntil - now) / 1000) }
+  }
+  // Lockout expired — clean up
+  failureStore.delete(key)
+  return { locked: false, retryAfterSeconds: 0 }
 }
