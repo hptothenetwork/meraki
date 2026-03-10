@@ -1070,7 +1070,7 @@ export default function AdminPage() {
     const isMulti = files.length > 1 && sectionAssetMultiUploadResolver.current;
 
     setMessage(`Uploading ${fileArray.length} file(s)...`);
-    const uploaded = await uploadAdminFiles(fileArray);
+    const { items: uploaded, error } = await uploadAdminFiles(fileArray);
 
     if (uploaded.length) {
       if (isMulti && sectionAssetMultiUploadResolver.current) {
@@ -1081,7 +1081,7 @@ export default function AdminPage() {
         setMessage("Image uploaded.");
       }
     } else {
-      setMessage("Upload failed. Check credentials.");
+      setMessage(error ?? "Upload failed. Check credentials.");
     }
     sectionAssetUploadResolver.current = null;
     sectionAssetMultiUploadResolver.current = null;
