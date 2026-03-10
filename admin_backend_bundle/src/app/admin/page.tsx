@@ -4039,7 +4039,7 @@ export default function AdminPage() {
                     ref={(el) => { if (el && !el.dataset.eventMedia) { el.dataset.eventMedia = "true"; } }}
                     accept="image/*,video/*"
                     multiple
-                    className="hidden"
+                    className="sr-only"
                     onChange={async (e) => {
                       const files = Array.from(e.target.files || []);
                       if (files.length === 0) return;
@@ -6702,7 +6702,7 @@ export default function AdminPage() {
         type="file"
         accept="image/*,video/*"
         multiple
-        className="hidden"
+        className="sr-only"
         onChange={(e) => {
           onUploadMedia(e.target.files);
           if (e.target) e.target.value = "";
@@ -6713,7 +6713,7 @@ export default function AdminPage() {
         type="file"
         accept="image/*,video/*"
         multiple
-        className="hidden"
+        className="sr-only"
         onChange={(e) => handleSectionAssetUpload(e.target.files)}
       />
 

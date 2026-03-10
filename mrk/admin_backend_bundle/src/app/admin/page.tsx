@@ -4036,7 +4036,7 @@ export default function AdminPage() {
                     accept="image/*,video/*"
                     capture="environment"
                     multiple
-                    className="hidden"
+                    className="sr-only"
                     onChange={async (e) => {
                       const files = Array.from(e.target.files || []);
                       if (files.length === 0) return;
@@ -6692,7 +6692,7 @@ export default function AdminPage() {
         type="file"
         accept="image/*,video/*"
         multiple
-        className="hidden"
+        className="sr-only"
         onChange={(e) => onUploadMedia(e.target.files)}
       />
       <input
@@ -6700,7 +6700,7 @@ export default function AdminPage() {
         type="file"
         accept="image/*,video/*"
         multiple
-        className="hidden"
+        className="sr-only"
         onChange={(e) => handleSectionAssetUpload(e.target.files)}
       />
 
