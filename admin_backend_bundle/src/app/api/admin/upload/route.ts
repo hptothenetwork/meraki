@@ -24,12 +24,12 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "File missing" }, { status: 400 });
   }
 
-  const allowedTypes = ["image/", "video/"];
-  const isAllowedType = allowedTypes.some((p) => file.type.startsWith(p));
-  if (!isAllowedType) {
+  // Samsung/Android can report video files with empty MIME type — check extension too
+  const isVideo = file.type.startsWith("video/") || /\.(mp4|mov|avi|mkv|webm|m4v|3gp|wmv|ogv)$/i.test(file.name);
+  const isImage = file.type.startsWith("image/");
+  if (!isVideo && !isImage) {
     return NextResponse.json({ error: "Unsupported file type" }, { status: 415 });
   }
-  const isVideo = file.type.startsWith("video/");
   const defaultMaxMb = isVideo ? 200 : 50;
   const envMaxMb = Number(process.env.ADMIN_UPLOAD_MAX_MB || defaultMaxMb);
   const maxMb = Number.isFinite(envMaxMb) && envMaxMb > 0 ? envMaxMb : defaultMaxMb;

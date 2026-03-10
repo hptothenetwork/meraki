@@ -1100,6 +1100,11 @@ export default function AdminPage() {
     return url;
   };
 
+  // Samsung/Android sometimes reports video files with empty or wrong MIME type — check extension too
+  const isVideoFile = (file: File) =>
+    file.type.startsWith("video/") ||
+    /\.(mp4|mov|avi|mkv|webm|m4v|3gp|wmv|ogv)$/i.test(file.name);
+
   // Fetch a short-lived ImageKit auth token for direct browser uploads (videos)
   const getImageKitAuth = async () => {
     const res = await fetch("/api/admin/upload/auth");
@@ -1139,7 +1144,7 @@ export default function AdminPage() {
           let url: string;
           let key: string;
 
-          if (file.type.startsWith("video/")) {
+          if (isVideoFile(file)) {
             // Videos: direct browser → ImageKit (no Vercel body size limit, no server hop)
             const result = await uploadVideoDirectly(file);
             url = result.url;
@@ -1164,7 +1169,7 @@ export default function AdminPage() {
               id: key,
               name: file.name,
               url,
-              type: file.type.startsWith("video/") ? "video" : "image",
+              type: isVideoFile(file) ? "video" : "image",
               usedIn: [],
             } as MediaItem,
             error: undefined as string | undefined,
