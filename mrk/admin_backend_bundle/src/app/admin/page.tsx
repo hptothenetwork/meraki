@@ -238,7 +238,6 @@ export default function AdminPage() {
   const [imageEditorCallback] = useState<((settings: ImageSettings) => void) | null>(null);
   const [reorderSelection, setReorderSelection] = useState<{ type: string; index: number } | null>(null);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
-  const productMediaInputRef = useRef<HTMLInputElement | null>(null);
   const sectionAssetInputRef = useRef<HTMLInputElement | null>(null);
   const sectionAssetUploadResolver = useRef<((url: string) => void) | null>(null);
   const sectionAssetMultiUploadResolver = useRef<((urls: string[]) => void) | null>(null);
@@ -3299,11 +3298,18 @@ export default function AdminPage() {
             ))}
           </div>
           <div className="flex gap-2">
-            <label
-              htmlFor="product-media-upload"
-              className={`${orangeBtn} cursor-pointer select-none`}
-            >
+            <label className={`${orangeBtn} relative cursor-pointer select-none inline-flex items-center`}>
               Upload images / videos
+              <input
+                type="file"
+                accept="image/*,video/*"
+                multiple
+                className="sr-only"
+                onChange={(e) => {
+                  onUploadProductMedia(e.target.files);
+                  if (e.target) e.target.value = "";
+                }}
+              />
             </label>
           </div>
           <Helper>Tip: Add at least 3 photos/videos for each product.</Helper>
@@ -6688,18 +6694,6 @@ export default function AdminPage() {
         multiple
         className="hidden"
         onChange={(e) => onUploadMedia(e.target.files)}
-      />
-      <input
-        ref={productMediaInputRef}
-        id="product-media-upload"
-        type="file"
-        accept="image/*,video/*"
-        multiple
-        className="hidden"
-        onChange={(e) => {
-          onUploadProductMedia(e.target.files);
-          if (e.target) e.target.value = "";
-        }}
       />
       <input
         ref={sectionAssetInputRef}
