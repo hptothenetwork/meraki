@@ -223,18 +223,20 @@ function ProductDetailInner({ product, relatedProducts, allProducts }: ProductDe
         <div className="grid gap-8 lg:grid-cols-[1.2fr_1fr]">
           <div className="space-y-3">
             <div className="overflow-hidden rounded-2xl border border-border bg-card">
-              {activeMedia.type === "video" ? (
-                <video src={activeMedia.src} className="h-full w-full object-cover" controls playsInline />
-              ) : (
-                <Image
-                  src={activeMedia.src}
-                  alt={activeMedia.alt || product.name}
-                  width={1200}
-                  height={1600}
-                  unoptimized
-                  className="h-full w-full object-cover"
-                />
-              )}
+              <div className="relative aspect-[4/5] w-full">
+                {activeMedia.type === "video" ? (
+                  <video src={activeMedia.src} className="absolute inset-0 h-full w-full object-cover" controls playsInline />
+                ) : (
+                  <Image
+                    src={activeMedia.src}
+                    alt={activeMedia.alt || product.name}
+                    width={1200}
+                    height={1600}
+                    unoptimized
+                    className="absolute inset-0 h-full w-full object-cover"
+                  />
+                )}
+              </div>
             </div>
             {galleryMedia.length > 0 && (
               <div className="flex gap-2 overflow-x-auto pb-1">
