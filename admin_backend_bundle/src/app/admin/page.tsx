@@ -2906,16 +2906,6 @@ export default function AdminPage() {
 
         <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
           <div className="space-y-1">
-            <Field label="Cart fallback image">
-              <input
-                value={editingProduct.fallbackImage || ""}
-                onChange={(e) => setEditingProduct({ ...editingProduct, fallbackImage: e.target.value })}
-                className="w-full rounded-lg border border-mubah-mid bg-mubah-mid/30 px-3 py-2"
-                placeholder="https://... fallback image"
-              />
-            </Field>
-          </div>
-          <div className="space-y-1">
             <Field label="Sale active">
               <label className="flex items-center gap-2 text-sm text-mubah-cream/80">
                 <input
@@ -3314,24 +3304,7 @@ export default function AdminPage() {
           </div>
           <div className="flex gap-2">
             <button className={orangeBtn} onClick={() => productMediaInputRef.current?.click()}>
-              Upload new
-            </button>
-            <button className={ghostBtn} onClick={() => setActiveSection("media")}>
-              Choose from library
-            </button>
-            <button
-              className={ghostBtn}
-              onClick={() => {
-                const url = prompt("Paste image or video URL");
-                const clean = url?.trim();
-                if (!clean || !editingProduct) return;
-                const pathOnly = clean.split("?")[0].split("#")[0];
-                const type = /\.(mp4|mov|webm|m4v)$/i.test(pathOnly) ? ("video" as const) : ("image" as const);
-                const next = [...(editingProduct.media || []), { id: crypto.randomUUID(), src: clean, alt: "", type }];
-                setEditingProduct({ ...editingProduct, media: next });
-              }}
-            >
-              Add via URL
+              Upload images / videos
             </button>
           </div>
           <Helper>Tip: Add at least 3 photos/videos for each product.</Helper>
