@@ -1100,13 +1100,18 @@ export default function AdminPage() {
     return url;
   };
 
-  const uploadAdminFiles = async (files: File[]): Promise<MediaItem[]> => {
+  const uploadAdminFiles = async (files: File[]): Promise<{ items: MediaItem[]; error?: string }> => {
     const uploaded: MediaItem[] = [];
+    let lastError: string | undefined;
     for (const file of files) {
       const formData = new FormData();
       formData.append("file", file);
       const res = await fetch("/api/admin/upload", { method: "POST", body: formData });
-      if (!res.ok) continue;
+      if (!res.ok) {
+        const errBody = await res.json().catch(() => ({} as Record<string, unknown>));
+        lastError = typeof errBody.error === "string" ? errBody.error : `Upload failed (${res.status})`;
+        continue;
+      }
       const data = await res.json().catch(() => ({} as Record<string, unknown>));
       const url = typeof data.url === "string" ? data.url : "";
       if (!url) continue;
@@ -1119,19 +1124,19 @@ export default function AdminPage() {
         usedIn: [],
       });
     }
-    return uploaded;
+    return { items: uploaded, error: lastError };
   };
 
   const onUploadMedia = async (files: FileList | null) => {
     if (!files || files.length === 0) return;
     const fileArray = Array.from(files).slice(0, MAX_UPLOAD_FILES);
     setMessage(`Uploading ${fileArray.length} file(s)...`);
-    const newItems = await uploadAdminFiles(fileArray);
+    const { items: newItems, error } = await uploadAdminFiles(fileArray);
     if (newItems.length) {
       setMedia((prev) => [...newItems, ...prev]);
       setMessage(`${newItems.length} media file(s) uploaded.`);
     } else {
-      setMessage("Upload failed. Check file size and format.");
+      setMessage(error ?? "Upload failed. Check file size and format.");
     }
   };
 
@@ -1139,7 +1144,7 @@ export default function AdminPage() {
     if (!files || files.length === 0 || !editingProduct) return;
     const fileArray = Array.from(files).slice(0, MAX_UPLOAD_FILES);
     setMessage(`Uploading ${fileArray.length} file(s)...`);
-    const newItems = await uploadAdminFiles(fileArray);
+    const { items: newItems, error } = await uploadAdminFiles(fileArray);
     if (newItems.length) {
       setMedia((prev) => [...newItems, ...prev]);
       const productMedia: ProductMedia[] = newItems.map((item) => ({
@@ -1154,7 +1159,7 @@ export default function AdminPage() {
       });
       setMessage(`${newItems.length} media file(s) uploaded and attached.`);
     } else {
-      setMessage("Upload failed. Check file size and format.");
+      setMessage(error ?? "Upload failed. Check file size and format.");
     }
   };
 

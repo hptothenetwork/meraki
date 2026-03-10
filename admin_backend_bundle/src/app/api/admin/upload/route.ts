@@ -101,14 +101,7 @@ export async function POST(req: Request) {
       }
     }
 
-    // No providers configured — fail clearly instead of silently using local storage
-    if (!isImageKitConfigured() && !isVercelBlobConfigured() && !isR2Ready()) {
-      return NextResponse.json(
-        { error: "No upload provider configured. Set IMAGEKIT_PRIVATE_KEY + IMAGEKIT_URL_ENDPOINT in Vercel env vars." },
-        { status: 500 }
-      );
-    }
-
+    // Fallback to local filesystem (dev/staging only — Vercel production is read-only)
     const { key, url } = await uploadToLocalStorage({
       data: outputBuffer,
       contentType: outputContentType,
