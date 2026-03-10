@@ -2657,7 +2657,7 @@ export default function AdminPage() {
                     <div key={m.id ?? m.url} className="group relative overflow-hidden rounded-xl border border-mubah-mid bg-mubah-mid/30 shadow-sm">
                       <div className="h-28 w-full bg-mubah-mid/40">
                         {m.type === "video" ? (
-                          <div className="flex h-full items-center justify-center text-xl"></div>
+                          <video src={m.url} className="h-full w-full object-cover" muted playsInline preload="metadata" />
                         ) : (
                           <img src={m.url} alt={m.name} className="h-full w-full object-cover" />
                         )}
@@ -3291,7 +3291,13 @@ export default function AdminPage() {
                   {/* Position number badge */}
                   <div className="absolute top-1 right-1 z-10 w-6 h-6 rounded-full bg-mubah-orange text-mubah-deep text-xs font-bold flex items-center justify-center">{idx + 1}</div>
                   {m.type === "video" ? (
-                    <div className="flex h-full w-full items-center justify-center text-2xl text-mubah-cream"></div>
+                    <video
+                      src={m.src}
+                      className="h-full w-full object-cover"
+                      muted
+                      playsInline
+                      preload="metadata"
+                    />
                   ) : (
                     <img src={m.src} alt={m.alt || "media"} className="h-full w-full object-cover" />
                   )}
