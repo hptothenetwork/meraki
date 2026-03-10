@@ -2910,14 +2910,6 @@ export default function AdminPage() {
                   className="w-full rounded-lg border border-mubah-mid bg-mubah-mid/30 px-3 py-2"
                   placeholder="https://... fallback image"
                 />
-                <button
-                  type="button"
-                  className={ghostBtn}
-                  onClick={() => setActiveSection("media")}
-                >
-                  Pick from media
-                </button>
-              </div>
             </Field>
           </div>
           <div className="space-y-1">

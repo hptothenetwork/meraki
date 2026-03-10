@@ -2907,21 +2907,12 @@ export default function AdminPage() {
         <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
           <div className="space-y-1">
             <Field label="Cart fallback image">
-              <div className="flex gap-2">
-                <input
-                  value={editingProduct.fallbackImage || ""}
-                  onChange={(e) => setEditingProduct({ ...editingProduct, fallbackImage: e.target.value })}
-                  className="w-full rounded-lg border border-mubah-mid bg-mubah-mid/30 px-3 py-2"
-                  placeholder="https://... fallback image"
-                />
-                <button
-                  type="button"
-                  className={ghostBtn}
-                  onClick={() => setActiveSection("media")}
-                >
-                  Pick from media
-                </button>
-              </div>
+              <input
+                value={editingProduct.fallbackImage || ""}
+                onChange={(e) => setEditingProduct({ ...editingProduct, fallbackImage: e.target.value })}
+                className="w-full rounded-lg border border-mubah-mid bg-mubah-mid/30 px-3 py-2"
+                placeholder="https://... fallback image"
+              />
             </Field>
           </div>
           <div className="space-y-1">
