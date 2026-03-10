@@ -1100,31 +1100,86 @@ export default function AdminPage() {
     return url;
   };
 
-  const uploadAdminFiles = async (files: File[]): Promise<{ items: MediaItem[]; error?: string }> => {
-    const uploaded: MediaItem[] = [];
-    let lastError: string | undefined;
-    for (const file of files) {
-      const formData = new FormData();
-      formData.append("file", file);
-      const res = await fetch("/api/admin/upload", { method: "POST", body: formData });
-      if (!res.ok) {
-        const errBody = await res.json().catch(() => ({} as Record<string, unknown>));
-        lastError = typeof errBody.error === "string" ? errBody.error : `Upload failed (${res.status})`;
-        continue;
-      }
-      const data = await res.json().catch(() => ({} as Record<string, unknown>));
-      const url = typeof data.url === "string" ? data.url : "";
-      if (!url) continue;
-      const key = typeof data.key === "string" ? data.key : url;
-      uploaded.push({
-        id: key,
-        name: file.name,
-        url,
-        type: file.type.startsWith("video/") ? "video" : "image",
-        usedIn: [],
-      });
+  // Fetch a short-lived ImageKit auth token for direct browser uploads (videos)
+  const getImageKitAuth = async () => {
+    const res = await fetch("/api/admin/upload/auth");
+    if (!res.ok) throw new Error("Could not get upload auth token");
+    return res.json() as Promise<{ token: string; expire: number; signature: string; publicKey: string }>;
+  };
+
+  // Upload video directly from browser to ImageKit — bypasses Vercel's 4.5 MB serverless body limit
+  const uploadVideoDirectly = async (file: File): Promise<{ url: string; key: string }> => {
+    const auth = await getImageKitAuth();
+    const form = new FormData();
+    form.append("file", file);
+    form.append("fileName", file.name);
+    form.append("publicKey", auth.publicKey);
+    form.append("signature", auth.signature);
+    form.append("expire", String(auth.expire));
+    form.append("token", auth.token);
+    form.append("folder", "/products");
+    form.append("useUniqueFileName", "true");
+    const res = await fetch("https://upload.imagekit.io/api/v1/files/upload", {
+      method: "POST",
+      body: form,
+    });
+    if (!res.ok) {
+      const msg = await res.text().catch(() => "");
+      throw new Error(`ImageKit video upload failed: ${res.status} ${msg}`);
     }
-    return { items: uploaded, error: lastError };
+    const data = await res.json();
+    return { url: data.url, key: data.fileId };
+  };
+
+  const uploadAdminFiles = async (files: File[]): Promise<{ items: MediaItem[]; error?: string }> => {
+    // Upload all files in parallel for maximum speed
+    const results = await Promise.all(
+      files.map(async (file) => {
+        try {
+          let url: string;
+          let key: string;
+
+          if (file.type.startsWith("video/")) {
+            // Videos: direct browser → ImageKit (no Vercel body size limit, no server hop)
+            const result = await uploadVideoDirectly(file);
+            url = result.url;
+            key = result.key;
+          } else {
+            // Images: through server (resize, compress to WebP, watermark applied)
+            const formData = new FormData();
+            formData.append("file", file);
+            const res = await fetch("/api/admin/upload", { method: "POST", body: formData });
+            if (!res.ok) {
+              const errBody = await res.json().catch(() => ({} as Record<string, unknown>));
+              throw new Error(typeof errBody.error === "string" ? errBody.error : `Upload failed (${res.status})`);
+            }
+            const data = await res.json().catch(() => ({} as Record<string, unknown>));
+            url = typeof data.url === "string" ? data.url : "";
+            key = typeof data.key === "string" ? data.key : url;
+            if (!url) throw new Error("No URL returned from server");
+          }
+
+          return {
+            item: {
+              id: key,
+              name: file.name,
+              url,
+              type: file.type.startsWith("video/") ? "video" : "image",
+              usedIn: [],
+            } as MediaItem,
+            error: undefined as string | undefined,
+          };
+        } catch (err) {
+          return {
+            item: null as MediaItem | null,
+            error: err instanceof Error ? err.message : "Upload failed",
+          };
+        }
+      })
+    );
+    const items = results.filter((r) => r.item).map((r) => r.item as MediaItem);
+    const error = results.find((r) => r.error)?.error;
+    return { items, error };
   };
 
   const onUploadMedia = async (files: FileList | null) => {

@@ -49,14 +49,29 @@ export async function POST(req: Request) {
   const arrayBuffer = await file.arrayBuffer();
   const inputBuffer = Buffer.from(arrayBuffer);
   let outputBuffer: Uint8Array = inputBuffer;
-  const outputContentType = file.type || "application/octet-stream";
+  let outputContentType = file.type || "application/octet-stream";
+  let outputFileName = file.name;
 
-  if (file.type.startsWith("image/") && process.env.ADMIN_IMAGE_WATERMARK_ENABLED !== "false") {
+  if (!isVideo) {
+    // Resize to max 2000px and compress to WebP — reduces file size 60-80% for faster uploads
     try {
-      outputBuffer = await applyMerakiWatermark(inputBuffer);
-    } catch (error) {
-      console.warn("[upload] watermark failed, falling back to original image", error);
-      outputBuffer = inputBuffer;
+      outputBuffer = await sharp(inputBuffer, { failOn: "none" })
+        .resize(2000, 2000, { fit: "inside", withoutEnlargement: true })
+        .webp({ quality: 85 })
+        .toBuffer();
+      outputContentType = "image/webp";
+      outputFileName = file.name.replace(/\.[^.]+$/, "") + ".webp";
+    } catch (err) {
+      console.warn("[upload] resize/compress failed, using original", err);
+    }
+
+    if (process.env.ADMIN_IMAGE_WATERMARK_ENABLED !== "false") {
+      try {
+        outputBuffer = await applyMerakiWatermark(outputBuffer);
+      } catch (error) {
+        console.warn("[upload] watermark failed, falling back to original image", error);
+        outputBuffer = inputBuffer;
+      }
     }
   }
 
@@ -66,7 +81,7 @@ export async function POST(req: Request) {
         const { key, url } = await uploadToImageKit({
           data: outputBuffer,
           contentType: outputContentType,
-          fileName: file.name,
+          fileName: outputFileName,
           folder: "/products",
         });
         return NextResponse.json({ url, key, public_id: key, provider: "imagekit" });
