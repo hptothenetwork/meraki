@@ -3303,9 +3303,12 @@ export default function AdminPage() {
             ))}
           </div>
           <div className="flex gap-2">
-            <button className={orangeBtn} onClick={() => productMediaInputRef.current?.click()}>
+            <label
+              htmlFor="product-media-upload"
+              className={`${orangeBtn} cursor-pointer select-none`}
+            >
               Upload images / videos
-            </button>
+            </label>
           </div>
           <Helper>Tip: Add at least 3 photos/videos for each product.</Helper>
         </div>
@@ -6701,13 +6704,14 @@ export default function AdminPage() {
       />
       <input
         ref={productMediaInputRef}
+        id="product-media-upload"
         type="file"
         accept="image/*,video/*"
         multiple
         className="hidden"
         onChange={(e) => {
           onUploadProductMedia(e.target.files);
-          if (e.target) e.target.value = ""; // Reset so same file can be selected again
+          if (e.target) e.target.value = "";
         }}
       />
       <input
