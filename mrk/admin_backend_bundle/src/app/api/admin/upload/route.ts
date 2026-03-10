@@ -37,8 +37,10 @@ export async function POST(req: Request) {
   if (!isAllowedType) {
     return NextResponse.json({ error: "Unsupported file type" }, { status: 415 });
   }
-  const envMaxMb = Number(process.env.ADMIN_UPLOAD_MAX_MB || "50");
-  const maxMb = Number.isFinite(envMaxMb) && envMaxMb > 0 ? envMaxMb : 50;
+  const isVideo = file.type.startsWith("video/");
+  const defaultMaxMb = isVideo ? 200 : 50;
+  const envMaxMb = Number(process.env.ADMIN_UPLOAD_MAX_MB || defaultMaxMb);
+  const maxMb = Number.isFinite(envMaxMb) && envMaxMb > 0 ? envMaxMb : defaultMaxMb;
   const maxBytes = maxMb * 1024 * 1024;
   if (file.size > maxBytes) {
     return NextResponse.json({ error: `File too large. Max ${maxMb}MB` }, { status: 413 });
