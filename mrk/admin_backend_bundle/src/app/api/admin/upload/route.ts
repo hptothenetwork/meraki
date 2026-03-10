@@ -58,7 +58,6 @@ export async function POST(req: Request) {
     }
   }
 
-  let lastProviderError: unknown;
   try {
     if (isImageKitConfigured()) {
       try {
@@ -70,8 +69,9 @@ export async function POST(req: Request) {
         });
         return NextResponse.json({ url, key, public_id: key, provider: "imagekit" });
       } catch (error) {
-        console.error("[upload] imagekit failed, trying fallback provider", error);
-        lastProviderError = error;
+        const detail = error instanceof Error ? error.message : String(error);
+        console.error("[upload] imagekit failed:", detail);
+        return NextResponse.json({ error: `ImageKit upload failed: ${detail}` }, { status: 500 });
       }
     }
 
@@ -83,11 +83,11 @@ export async function POST(req: Request) {
           fileName: file.name,
           prefix: "products",
         });
-
         return NextResponse.json({ url, key, public_id: key, provider: "r2" });
       } catch (error) {
-        console.error("[upload] r2 failed, trying local fallback", error);
-        lastProviderError = error;
+        const detail = error instanceof Error ? error.message : String(error);
+        console.error("[upload] r2 failed:", detail);
+        return NextResponse.json({ error: `R2 upload failed: ${detail}` }, { status: 500 });
       }
     }
 
@@ -99,9 +99,9 @@ export async function POST(req: Request) {
     });
     return NextResponse.json({ url, key, public_id: key, provider: "local" });
   } catch (error) {
-    console.error("[upload] failed", error);
-    const detail = lastProviderError instanceof Error ? lastProviderError.message : undefined;
-    return NextResponse.json({ error: "Upload failed", detail }, { status: 500 });
+    const detail = error instanceof Error ? error.message : String(error);
+    console.error("[upload] failed:", detail);
+    return NextResponse.json({ error: `Upload failed: ${detail}` }, { status: 500 });
   }
 }
 

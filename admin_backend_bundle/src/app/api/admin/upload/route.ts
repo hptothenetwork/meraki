@@ -50,10 +50,7 @@ export async function POST(req: Request) {
     }
   }
 
-  let lastProviderError: unknown;
   try {
-    // ImageKit is the primary and required upload provider.
-    // Set IMAGEKIT_PRIVATE_KEY and IMAGEKIT_URL_ENDPOINT in Vercel env vars.
     if (isImageKitConfigured()) {
       try {
         const { key, url } = await uploadToImageKit({
@@ -64,11 +61,10 @@ export async function POST(req: Request) {
         });
         return NextResponse.json({ url, key, public_id: key, provider: "imagekit" });
       } catch (error) {
-        console.error("[upload] imagekit failed, trying fallback provider", error);
-        lastProviderError = error;
+        const detail = error instanceof Error ? error.message : String(error);
+        console.error("[upload] imagekit failed:", detail);
+        return NextResponse.json({ error: `ImageKit upload failed: ${detail}` }, { status: 500 });
       }
-    } else {
-      console.warn("[upload] ImageKit not configured — set IMAGEKIT_PRIVATE_KEY and IMAGEKIT_URL_ENDPOINT in Vercel env vars");
     }
 
     if (isVercelBlobConfigured()) {
@@ -81,8 +77,9 @@ export async function POST(req: Request) {
         });
         return NextResponse.json({ url, key, public_id: key, provider: "vercel-blob" });
       } catch (error) {
-        console.error("[upload] vercel-blob failed, trying next provider", error);
-        lastProviderError = error;
+        const detail = error instanceof Error ? error.message : String(error);
+        console.error("[upload] vercel-blob failed:", detail);
+        return NextResponse.json({ error: `Vercel Blob upload failed: ${detail}` }, { status: 500 });
       }
     }
 
@@ -96,12 +93,13 @@ export async function POST(req: Request) {
         });
         return NextResponse.json({ url, key, public_id: key, provider: "r2" });
       } catch (error) {
-        console.error("[upload] r2 failed, trying local fallback", error);
-        lastProviderError = error;
+        const detail = error instanceof Error ? error.message : String(error);
+        console.error("[upload] r2 failed:", detail);
+        return NextResponse.json({ error: `R2 upload failed: ${detail}` }, { status: 500 });
       }
     }
 
-    // Fallback to local filesystem (dev/staging only — Vercel production is read-only)
+    // Dev fallback: local filesystem (read-only on Vercel production)
     const { key, url } = await uploadToLocalStorage({
       data: outputBuffer,
       contentType: outputContentType,
@@ -110,9 +108,9 @@ export async function POST(req: Request) {
     });
     return NextResponse.json({ url, key, public_id: key, provider: "local" });
   } catch (error) {
-    console.error("[upload] failed", error);
-    const detail = lastProviderError instanceof Error ? lastProviderError.message : undefined;
-    return NextResponse.json({ error: "Upload failed", detail }, { status: 500 });
+    const detail = error instanceof Error ? error.message : String(error);
+    console.error("[upload] failed:", detail);
+    return NextResponse.json({ error: `Upload failed: ${detail}` }, { status: 500 });
   }
 }
 
