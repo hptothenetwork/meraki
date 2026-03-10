@@ -47,6 +47,12 @@ function ProductDetailInner({ product, relatedProducts, allProducts }: ProductDe
   }, [product.image, product.media, product.name])
   const activeMedia = galleryMedia[mediaIndex] || galleryMedia[0]
 
+  const getVideoPosterUrl = (url?: string) => {
+    if (!url || !url.includes("imagekit.io")) return undefined
+    const cleanUrl = url.split("?")[0]
+    return `${cleanUrl}/ik-thumbnail.jpg?tr=so-0`
+  }
+
   const highlights = useMemo(
     () =>
       product.features?.length
@@ -225,7 +231,13 @@ function ProductDetailInner({ product, relatedProducts, allProducts }: ProductDe
             <div className="overflow-hidden rounded-2xl border border-border bg-card">
               <div className="relative aspect-[4/5] w-full">
                 {activeMedia.type === "video" ? (
-                  <video src={activeMedia.src} className="absolute inset-0 h-full w-full object-cover" controls playsInline />
+                  <video
+                    src={activeMedia.src}
+                    poster={getVideoPosterUrl(activeMedia.src)}
+                    className="absolute inset-0 h-full w-full object-cover"
+                    controls
+                    playsInline
+                  />
                 ) : (
                   <Image
                     src={activeMedia.src}
@@ -251,7 +263,15 @@ function ProductDetailInner({ product, relatedProducts, allProducts }: ProductDe
                   >
                     {media.type === "video" ? (
                       <>
-                        <video src={media.src} className="h-full w-full object-cover" muted loop playsInline />
+                        <video
+                          src={media.src}
+                          poster={getVideoPosterUrl(media.src)}
+                          className="h-full w-full object-cover"
+                          muted
+                          loop
+                          playsInline
+                          preload="metadata"
+                        />
                         <span className="absolute inset-0 flex items-center justify-center bg-foreground/25 text-white">
                           <Play className="h-3.5 w-3.5" />
                         </span>

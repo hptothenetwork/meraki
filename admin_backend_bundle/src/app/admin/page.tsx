@@ -1100,6 +1100,12 @@ export default function AdminPage() {
     return url;
   };
 
+  const getVideoPosterUrl = (url?: string) => {
+    if (!url || !url.includes("imagekit.io")) return undefined;
+    const cleanUrl = url.split("?")[0];
+    return getProxiedUrl(`${cleanUrl}/ik-thumbnail.jpg?tr=so-0`);
+  };
+
   // Samsung/Android sometimes reports video files with empty or wrong MIME type — check extension too
   const isVideoFile = (file: File) =>
     file.type.startsWith("video/") ||
@@ -3230,6 +3236,7 @@ export default function AdminPage() {
                 editingProduct.media[productMediaCarouselIndex].type === "video" ? (
                   <video
                     src={editingProduct.media[productMediaCarouselIndex].src}
+                    poster={getVideoPosterUrl(editingProduct.media[productMediaCarouselIndex].src)}
                     className="h-full w-full object-cover"
                     controls
                     muted
@@ -3296,13 +3303,21 @@ export default function AdminPage() {
                   {/* Position number badge */}
                   <div className="absolute top-1 right-1 z-10 w-6 h-6 rounded-full bg-mubah-orange text-mubah-deep text-xs font-bold flex items-center justify-center">{idx + 1}</div>
                   {m.type === "video" ? (
-                    <video
-                      src={m.src}
-                      className="h-full w-full object-cover"
-                      muted
-                      playsInline
-                      preload="metadata"
-                    />
+                    <div className="relative h-full w-full bg-black/80">
+                      <video
+                        src={m.src}
+                        poster={getVideoPosterUrl(m.src)}
+                        className="h-full w-full object-cover"
+                        muted
+                        playsInline
+                        preload="metadata"
+                      />
+                      <div className="pointer-events-none absolute inset-0 flex items-center justify-center bg-black/10">
+                        <div className="rounded-full bg-black/60 px-2 py-1 text-[10px] font-semibold uppercase tracking-[0.12em] text-white">
+                          Video
+                        </div>
+                      </div>
+                    </div>
                   ) : (
                     <img src={m.src} alt={m.alt || "media"} className="h-full w-full object-cover" />
                   )}
