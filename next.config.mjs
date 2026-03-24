@@ -19,7 +19,15 @@ const nextConfig = {
       beforeFiles: [
         {
           source: "/admin",
-          destination: `${ADMIN_URL}/admin`,
+          destination: `${ADMIN_URL}/admin/admin`,
+        },
+        {
+          source: "/admin/subscribers",
+          destination: `${ADMIN_URL}/admin/admin/subscribers`,
+        },
+        {
+          source: "/admin/_next/:path*",
+          destination: `${ADMIN_URL}/admin/_next/:path*`,
         },
         {
           source: "/admin/:path*",

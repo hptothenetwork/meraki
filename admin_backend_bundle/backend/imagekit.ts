@@ -39,7 +39,9 @@ export async function uploadToImageKit({
   const form = new FormData();
   // Send as binary Blob — avoids the ~33% base64 size inflation which causes
   // ImageKit to reject videos that are under the limit but appear larger when base64-encoded.
-  const blob = new Blob([data], { type: contentType || "application/octet-stream" });
+  const bytes = Uint8Array.from(data);
+  const fileBuffer = bytes.buffer.slice(bytes.byteOffset, bytes.byteOffset + bytes.byteLength);
+  const blob = new Blob([fileBuffer], { type: contentType || "application/octet-stream" });
   form.append("file", blob, fileName || `upload-${Date.now()}`);
   form.append("fileName", fileName || `upload-${Date.now()}`);
   form.append("useUniqueFileName", "true");
