@@ -2,6 +2,12 @@
 
 import { useEffect, useState } from "react";
 
+const ADMIN_BASE_PATH = "/admin";
+
+function withAdminBasePath(path: string) {
+  return path.startsWith(ADMIN_BASE_PATH) ? path : `${ADMIN_BASE_PATH}${path}`;
+}
+
 type Subscriber = {
   id: string;
   email: string;
@@ -33,6 +39,14 @@ type Campaign = {
 };
 
 export default function SubscribersPage() {
+  const fetch: typeof globalThis.fetch = (input, init) => {
+    if (typeof input === "string" && input.startsWith("/")) {
+      return globalThis.fetch(withAdminBasePath(input), init);
+    }
+
+    return globalThis.fetch(input, init);
+  };
+
   const [subscribers, setSubscribers] = useState<Subscriber[]>([]);
   const [stockNotifications, setStockNotifications] = useState<StockNotification[]>([]);
   const [campaigns, setCampaigns] = useState<Campaign[]>([]);

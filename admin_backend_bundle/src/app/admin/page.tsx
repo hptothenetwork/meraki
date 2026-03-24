@@ -198,8 +198,21 @@ const orderStatusOptions: OrderStatus[] = ["pending", "processing", "shipped", "
 const MAX_UPLOAD_FILES = 10;
 const INSTAGRAM_PROFILE_URL = "https://www.instagram.com/meraki_the_brand/";
 const CODE_CURRENCIES = ["TZS", "USD"] as const;
+const ADMIN_BASE_PATH = "/admin";
+
+function withAdminBasePath(path: string) {
+  return path.startsWith(ADMIN_BASE_PATH) ? path : `${ADMIN_BASE_PATH}${path}`;
+}
 
 export default function AdminPage() {
+  const fetch: typeof globalThis.fetch = (input, init) => {
+    if (typeof input === "string" && input.startsWith("/")) {
+      return globalThis.fetch(withAdminBasePath(input), init);
+    }
+
+    return globalThis.fetch(input, init);
+  };
+
   const [token, setToken] = useState("");
   const [authed, setAuthed] = useState(false);
   const [activeSection, setActiveSection] = useState<"dashboard" | "categories" | "products" | "media" | "orders" | "forms" | "settings" | "currency" | "events" | "blog" | "reviews" | "partners" | "quickshop" | "storefrontControls" | "signatureCuts" | "instagramFeed" | "editorialCustomers" | "password" | "trash" | "users" | "giftCards">("products");
@@ -1095,7 +1108,7 @@ export default function AdminPage() {
     if (!url) return undefined;
     // Proxy external storage hosts that can trigger cross-origin fetch restrictions.
     if (url.includes("r2.cloudflarestorage.com") || url.includes(".r2.dev") || url.includes("imagekit.io")) {
-      return `/api/proxy-image?url=${encodeURIComponent(url)}`;
+      return withAdminBasePath(`/api/proxy-image?url=${encodeURIComponent(url)}`);
     }
     return url;
   };
