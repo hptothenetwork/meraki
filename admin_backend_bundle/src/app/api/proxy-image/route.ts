@@ -17,24 +17,24 @@ export async function OPTIONS() {
 }
 
 export async function GET(req: NextRequest) {
-  // Rate limit: 60 image proxy requests per minute per IP
+  // Rate limit: 300 image proxy requests per minute per IP
   const identifier = getRequestIdentifier(req);
-  const rl = await distributedRateLimit("proxy-image", identifier, 60, 60 * 1000);
+  const rl = await distributedRateLimit("proxy-image", identifier, 300, 60 * 1000);
   if (!rl.allowed) {
-    return NextResponse.json({ error: "Rate limit exceeded" }, { status: 429 });
+    return NextResponse.json({ error: "Rate limit exceeded" }, { status: 429, headers: CORS_HEADERS });
   }
 
   const url = req.nextUrl.searchParams.get("url");
   
   if (!url) {
-    return NextResponse.json({ error: "Missing url parameter" }, { status: 400 });
+    return NextResponse.json({ error: "Missing url parameter" }, { status: 400, headers: CORS_HEADERS });
   }
 
   let parsed: URL;
   try {
     parsed = new URL(url);
   } catch {
-    return NextResponse.json({ error: "Invalid URL" }, { status: 400 });
+    return NextResponse.json({ error: "Invalid URL" }, { status: 400, headers: CORS_HEADERS });
   }
 
   const imageKitHost = process.env.IMAGEKIT_URL_ENDPOINT
@@ -43,7 +43,7 @@ export async function GET(req: NextRequest) {
   const allowedHosts = ["r2.cloudflarestorage.com", ".r2.dev", "ik.imagekit.io", ".imagekit.io", imageKitHost].filter(Boolean);
   const hostAllowed = allowedHosts.some((h) => parsed.host === h || parsed.host.endsWith(h));
   if (!hostAllowed) {
-    return NextResponse.json({ error: "Host not allowed" }, { status: 403 });
+    return NextResponse.json({ error: "Host not allowed" }, { status: 403, headers: CORS_HEADERS });
   }
 
   try {
@@ -54,7 +54,7 @@ export async function GET(req: NextRequest) {
     });
 
     if (!response.ok) {
-      return NextResponse.json({ error: "Failed to fetch image" }, { status: response.status });
+      return NextResponse.json({ error: "Failed to fetch image" }, { status: response.status, headers: CORS_HEADERS });
     }
 
     const contentType = response.headers.get("content-type") || "image/png";
@@ -71,6 +71,6 @@ export async function GET(req: NextRequest) {
     });
   } catch (error) {
     console.error("[proxy-image] error:", error);
-    return NextResponse.json({ error: "Proxy failed" }, { status: 500 });
+    return NextResponse.json({ error: "Proxy failed" }, { status: 500, headers: CORS_HEADERS });
   }
 }
