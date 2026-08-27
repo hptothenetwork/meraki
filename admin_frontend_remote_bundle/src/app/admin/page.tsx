@@ -1101,26 +1101,84 @@ export default function AdminPage() {
     return url;
   };
 
+  // Client-side image pre-compression for fast mobile and desktop uploads
+  const compressImageClientSide = (file: File): Promise<File> => {
+    return new Promise((resolve) => {
+      if (!file.type.startsWith("image/") || file.type.includes("svg") || file.type.includes("gif")) {
+        return resolve(file);
+      }
+      const img = new Image();
+      const url = URL.createObjectURL(file);
+      img.onload = () => {
+        URL.revokeObjectURL(url);
+        const maxDim = 2000;
+        let { width, height } = img;
+        if (width <= maxDim && height <= maxDim && file.size < 500 * 1024) {
+          return resolve(file);
+        }
+        if (width > maxDim || height > maxDim) {
+          if (width > height) {
+            height = Math.round((height * maxDim) / width);
+            width = maxDim;
+          } else {
+            width = Math.round((width * maxDim) / height);
+            height = maxDim;
+          }
+        }
+        const canvas = document.createElement("canvas");
+        canvas.width = width;
+        canvas.height = height;
+        const ctx = canvas.getContext("2d");
+        if (!ctx) return resolve(file);
+        ctx.drawImage(img, 0, 0, width, height);
+        canvas.toBlob(
+          (blob) => {
+            if (!blob || blob.size >= file.size) {
+              return resolve(file);
+            }
+            const compressedFile = new File([blob], file.name.replace(/\.[^.]+$/, "") + ".webp", {
+              type: "image/webp",
+            });
+            resolve(compressedFile);
+          },
+          "image/webp",
+          0.85
+        );
+      };
+      img.onerror = () => {
+        URL.revokeObjectURL(url);
+        resolve(file);
+      };
+      img.src = url;
+    });
+  };
+
   const uploadAdminFiles = async (files: File[]): Promise<MediaItem[]> => {
-    const uploaded: MediaItem[] = [];
-    for (const file of files) {
-      const formData = new FormData();
-      formData.append("file", file);
-      const res = await fetch("/api/admin/upload", { method: "POST", body: formData });
-      if (!res.ok) continue;
-      const data = await res.json().catch(() => ({} as Record<string, unknown>));
-      const url = typeof data.url === "string" ? data.url : "";
-      if (!url) continue;
-      const key = typeof data.key === "string" ? data.key : url;
-      uploaded.push({
-        id: key,
-        name: file.name,
-        url,
-        type: file.type.startsWith("video/") ? "video" : "image",
-        usedIn: [],
-      });
-    }
-    return uploaded;
+    const results = await Promise.all(
+      files.map(async (file) => {
+        try {
+          const fileToUpload = await compressImageClientSide(file);
+          const formData = new FormData();
+          formData.append("file", fileToUpload);
+          const res = await fetch("/api/admin/upload", { method: "POST", body: formData });
+          if (!res.ok) return null;
+          const data = await res.json().catch(() => ({} as Record<string, unknown>));
+          const url = typeof data.url === "string" ? data.url : "";
+          if (!url) return null;
+          const key = typeof data.key === "string" ? data.key : url;
+          return {
+            id: key,
+            name: file.name,
+            url,
+            type: file.type.startsWith("video/") ? "video" : "image",
+            usedIn: [],
+          } as MediaItem;
+        } catch {
+          return null;
+        }
+      })
+    );
+    return results.filter(Boolean) as MediaItem[];
   };
 
   const onUploadMedia = async (files: FileList | null) => {

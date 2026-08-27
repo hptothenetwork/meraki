@@ -8,6 +8,7 @@ import { useCart } from "@/lib/cart-context"
 import { formatTZS, type Product } from "@/lib/data"
 import { MiniCart } from "@/components/mini-cart"
 import { SiteFooter } from "@/components/site-footer"
+import { optimizeImageKitUrl } from "@/lib/image-kit"
 
 type ProductDetailPageProps = {
   product: Product
@@ -240,11 +241,10 @@ function ProductDetailInner({ product, relatedProducts, allProducts }: ProductDe
                   />
                 ) : (
                   <Image
-                    src={activeMedia.src}
+                    src={optimizeImageKitUrl(activeMedia.src, 1000, 85)}
                     alt={activeMedia.alt || product.name}
-                    width={1200}
-                    height={1600}
-                    unoptimized
+                    width={1000}
+                    height={1250}
                     className="absolute inset-0 h-full w-full object-cover"
                   />
                 )}
@@ -268,22 +268,16 @@ function ProductDetailInner({ product, relatedProducts, allProducts }: ProductDe
                           poster={getVideoPosterUrl(media.src)}
                           className="h-full w-full object-cover"
                           muted
-                          loop
                           playsInline
-                          preload="metadata"
                         />
-                        <span className="absolute inset-0 flex items-center justify-center bg-foreground/25 text-white">
-                          <Play className="h-3.5 w-3.5" />
-                        </span>
+                        <span className="absolute inset-0 flex items-center justify-center bg-black/30 text-[10px] text-white">PLAY</span>
                       </>
                     ) : (
                       <Image
-                        src={media.src}
+                        src={optimizeImageKitUrl(media.src, 160, 75)}
                         alt={media.alt || product.name}
-                        width={64}
-                        height={64}
-                        unoptimized
-                        className="h-full w-full object-cover"
+                        fill
+                        className="object-cover"
                       />
                     )}
                   </button>
@@ -479,11 +473,10 @@ function ProductDetailInner({ product, relatedProducts, allProducts }: ProductDe
                 <Link key={item.id} href={`/products/${item.slug}`} className="group">
                   <div className="overflow-hidden rounded-xl bg-card">
                     <Image
-                      src={item.image}
+                      src={optimizeImageKitUrl(item.image, 500, 80)}
                       alt={item.name}
-                      width={600}
-                      height={800}
-                      unoptimized
+                      width={500}
+                      height={667}
                       className="aspect-[3/4] h-full w-full object-cover transition-transform duration-500 group-hover:scale-[1.03]"
                     />
                   </div>
@@ -555,11 +548,10 @@ function RelatedSection({ title, items }: { title: string; items: ResolvedRelati
             <Link key={item.id} href={item.href} className="group">
               <div className="overflow-hidden rounded-xl bg-card">
                 <Image
-                  src={item.image}
+                  src={optimizeImageKitUrl(item.image, 500, 80)}
                   alt={item.name}
-                  width={600}
-                  height={800}
-                  unoptimized
+                  width={500}
+                  height={667}
                   className="aspect-[3/4] h-full w-full object-cover transition-transform duration-500 group-hover:scale-[1.03]"
                 />
               </div>
@@ -570,11 +562,10 @@ function RelatedSection({ title, items }: { title: string; items: ResolvedRelati
             <div key={item.id}>
               <div className="overflow-hidden rounded-xl bg-card">
                 <Image
-                  src={item.image}
+                  src={optimizeImageKitUrl(item.image, 500, 80)}
                   alt={item.name}
-                  width={600}
-                  height={800}
-                  unoptimized
+                  width={500}
+                  height={667}
                   className="aspect-[3/4] h-full w-full object-cover"
                 />
               </div>

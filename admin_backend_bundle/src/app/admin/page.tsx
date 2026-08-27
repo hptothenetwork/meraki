@@ -391,8 +391,9 @@ export default function AdminPage() {
   }, []);
 
   const loadProducts = useCallback(async () => {
-    const res = await fetch("/api/admin/products", {
+    const res = await fetch(`/api/admin/products?_t=${Date.now()}`, {
       headers: { ...(storedToken ? { "x-admin-token": storedToken } : {}) },
+      cache: "no-store",
     });
     if (res.ok) {
       const data = (await res.json()) as { items: AdminProduct[] };
@@ -401,8 +402,9 @@ export default function AdminPage() {
   }, [storedToken]);
 
   const loadOrders = useCallback(async () => {
-    const res = await fetch("/api/admin/orders", {
+    const res = await fetch(`/api/admin/orders?_t=${Date.now()}`, {
       headers: { ...(storedToken ? { "x-admin-token": storedToken } : {}) },
+      cache: "no-store",
     });
     if (res.ok) {
       const data = (await res.json()) as { orders: Order[] };
@@ -575,18 +577,23 @@ export default function AdminPage() {
   const deleteProduct = useCallback(async (id: string) => {
     if (!id) return;
     if (!window.confirm("Delete this product?")) return;
+
+    // Instantly remove product from UI state without waiting for network call
+    setProducts((prev) => prev.filter((p) => p.id !== id));
+    if (editingProduct?.id === id) setEditingProduct(null);
+    setMessage("Product deleted");
+
     const res = await fetch(`/api/admin/products?id=${encodeURIComponent(id)}`, {
       method: "DELETE",
       headers: { ...(storedToken ? { "x-admin-token": storedToken } : {}) },
     });
     if (!res.ok) {
       setMessage("Failed to delete product");
+      await loadProducts();
       return;
     }
-    setProducts((prev) => prev.filter((p) => p.id !== id));
-    if (editingProduct?.id === id) setEditingProduct(null);
-    setMessage("Product deleted");
-  }, [editingProduct?.id, storedToken]);
+    await loadProducts();
+  }, [editingProduct?.id, loadProducts, storedToken]);
 
   const updateOrderStatus = useCallback(async (id: string, status: OrderStatus) => {
     const res = await fetch("/api/admin/orders", {
@@ -968,7 +975,7 @@ export default function AdminPage() {
     void run();
     const pollId = setInterval(() => {
       void run();
-    }, 10000);
+    }, 3000);
 
     return () => clearInterval(pollId);
   }, [authed, activeSection, loadAnalytics, loadEvents, loadOrders, loadProducts, loadReviews, loadSizeToolAnalytics]);
@@ -977,7 +984,7 @@ export default function AdminPage() {
     if (!authed || activeSection !== "orders") return;
     const pollId = setInterval(() => {
       void loadOrders();
-    }, 8000);
+    }, 3000);
     return () => clearInterval(pollId);
   }, [authed, activeSection, loadOrders]);
 
@@ -1103,14 +1110,18 @@ export default function AdminPage() {
     }
   };
 
-  // Proxy external URLs through our API to avoid CORS issues
-  const getProxiedUrl = (url?: string) => {
+  // Proxy external URLs through our API to avoid CORS issues and apply ImageKit bandwidth optimizations
+  const getProxiedUrl = (url?: string, width = 500, quality = 80) => {
     if (!url) return undefined;
-    // Proxy external storage hosts that can trigger cross-origin fetch restrictions.
-    if (url.includes("r2.cloudflarestorage.com") || url.includes(".r2.dev") || url.includes("imagekit.io")) {
-      return withAdminBasePath(`/api/proxy-image?url=${encodeURIComponent(url)}`);
+    let targetUrl = url;
+    if (targetUrl.includes("imagekit.io") && !targetUrl.includes("tr=")) {
+      const [baseUrl] = targetUrl.split("?");
+      targetUrl = `${baseUrl}?tr=w-${width},q-${quality},f-auto`;
     }
-    return url;
+    if (targetUrl.includes("r2.cloudflarestorage.com") || targetUrl.includes(".r2.dev") || targetUrl.includes("imagekit.io")) {
+      return withAdminBasePath(`/api/proxy-image?url=${encodeURIComponent(targetUrl)}`);
+    }
+    return targetUrl;
   };
 
   const getVideoPosterUrl = (url?: string) => {
@@ -1155,6 +1166,58 @@ export default function AdminPage() {
     return { url: data.url, key: data.fileId };
   };
 
+  // Client-side image pre-compression for fast mobile and desktop uploads
+  const compressImageClientSide = (file: File): Promise<File> => {
+    return new Promise((resolve) => {
+      if (!file.type.startsWith("image/") || file.type.includes("svg") || file.type.includes("gif")) {
+        return resolve(file);
+      }
+      const img = new Image();
+      const url = URL.createObjectURL(file);
+      img.onload = () => {
+        URL.revokeObjectURL(url);
+        const maxDim = 2000;
+        let { width, height } = img;
+        if (width <= maxDim && height <= maxDim && file.size < 500 * 1024) {
+          return resolve(file);
+        }
+        if (width > maxDim || height > maxDim) {
+          if (width > height) {
+            height = Math.round((height * maxDim) / width);
+            width = maxDim;
+          } else {
+            width = Math.round((width * maxDim) / height);
+            height = maxDim;
+          }
+        }
+        const canvas = document.createElement("canvas");
+        canvas.width = width;
+        canvas.height = height;
+        const ctx = canvas.getContext("2d");
+        if (!ctx) return resolve(file);
+        ctx.drawImage(img, 0, 0, width, height);
+        canvas.toBlob(
+          (blob) => {
+            if (!blob || blob.size >= file.size) {
+              return resolve(file);
+            }
+            const compressedFile = new File([blob], file.name.replace(/\.[^.]+$/, "") + ".webp", {
+              type: "image/webp",
+            });
+            resolve(compressedFile);
+          },
+          "image/webp",
+          0.85
+        );
+      };
+      img.onerror = () => {
+        URL.revokeObjectURL(url);
+        resolve(file);
+      };
+      img.src = url;
+    });
+  };
+
   const uploadAdminFiles = async (files: File[]): Promise<{ items: MediaItem[]; error?: string }> => {
     // Upload all files in parallel for maximum speed
     const results = await Promise.all(
@@ -1169,9 +1232,10 @@ export default function AdminPage() {
             url = result.url;
             key = result.key;
           } else {
-            // Images: through server (resize, compress to WebP, watermark applied)
+            // Images: client-side pre-compressed, then through server (watermark applied & sent to ImageKit)
+            const fileToUpload = await compressImageClientSide(file);
             const formData = new FormData();
-            formData.append("file", file);
+            formData.append("file", fileToUpload);
             const res = await fetch("/api/admin/upload", { method: "POST", body: formData });
             if (!res.ok) {
               const errBody = await res.json().catch(() => ({} as Record<string, unknown>));
@@ -1267,6 +1331,18 @@ export default function AdminPage() {
 
   const saveProduct = async (product: AdminProduct) => {
     try {
+      // Optimistically update product list in UI state
+      setProducts((prev) => {
+        const index = prev.findIndex((p) => p.id === product.id);
+        if (index >= 0) {
+          const next = [...prev];
+          next[index] = product;
+          return next;
+        }
+        return [product, ...prev];
+      });
+      setEditingProduct(null);
+
       const res = await fetch("/api/admin/products", {
         method: "POST",
         headers: {
@@ -1282,6 +1358,7 @@ export default function AdminPage() {
 
       if (!res.ok) {
         setMessage("Failed to save product");
+        await loadProducts();
         return;
       }
 
@@ -1294,11 +1371,11 @@ export default function AdminPage() {
         setMessage("Product saved");
       }
 
-      setEditingProduct(null);
       await loadProducts();
     } catch (error) {
       console.error("Failed to save product:", error);
       setMessage("Failed to save product");
+      await loadProducts();
     }
   };
 
@@ -6972,9 +7049,14 @@ function FormErrorList({ errors }: { errors?: string[] }) {
 }
 
 function Field({ label, children }: { label: string; children: React.ReactNode }) {
+  const isImportant = label.includes("*") || /name|price|category|status|stock/i.test(label);
   return (
-    <label className="flex flex-col gap-1 text-xs uppercase tracking-[0.14em] text-mubah-cream/70">
-      <span>{label}</span>
+    <label className="flex flex-col gap-1.5 text-xs font-bold uppercase tracking-[0.15em] text-mubah-orange">
+      <span className="flex items-center gap-1.5 font-bold text-amber-200">
+        <span className="h-2 w-2 rounded-full bg-mubah-orange shadow-[0_0_8px_rgba(230,120,40,0.9)]" />
+        <span className="text-amber-200 font-bold text-xs uppercase tracking-wider">{label}</span>
+        {isImportant && <span className="text-mubah-orange font-extrabold text-sm">*</span>}
+      </span>
       {children}
     </label>
   );

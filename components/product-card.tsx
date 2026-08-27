@@ -6,6 +6,8 @@ import { useCart } from "@/lib/cart-context"
 import { formatTZS, getPrimaryMedia, type Product } from "@/lib/data"
 import { toast } from "sonner"
 
+import { optimizeImageKitUrl } from "@/lib/image-kit"
+
 interface ProductCardProps {
   product: Product
   compact?: boolean
@@ -46,7 +48,7 @@ export function ProductCard({ product, compact = false, onQuickView }: ProductCa
           />
         ) : (
           <Image
-            src={primaryMedia.src}
+            src={optimizeImageKitUrl(primaryMedia.src, 500, 80)}
             alt={primaryMedia.alt || product.name}
             fill
             className="object-cover transition-transform duration-700 group-hover:scale-[1.03]"

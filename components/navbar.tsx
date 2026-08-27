@@ -183,7 +183,7 @@ export function Navbar({
                 </nav>
               )}
               {showPrimaryLinks ? (
-                <div className="relative hidden flex-1 items-center gap-6 lg:flex">
+                <div className={`${topRailOffsetClass} relative hidden flex-1 items-center gap-6 lg:flex`}>
                   {navLinks.map((link) => {
                     if (link.name === "Shop") {
                       return (
