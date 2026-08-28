@@ -46,12 +46,12 @@ export function requireAdmin(request: Request) {
     return true;
   }
 
-  // Legacy header auth is allowed only outside production for controlled migration.
-  const allowLegacyHeader =
-    process.env.NODE_ENV !== "production" && process.env.ALLOW_LEGACY_ADMIN_HEADER === "true";
-  if (allowLegacyHeader) {
-    const header = request.headers.get("x-admin-token") || request.headers.get("authorization");
-    if (header && header.replace("Bearer ", "") === assertSecret()) {
+  // Header auth fallback: check x-admin-token or authorization header
+  const header = request.headers.get("x-admin-token") || request.headers.get("authorization");
+  if (header) {
+    const token = header.replace(/^Bearer\s+/i, "").trim();
+    const secret = assertSecret();
+    if (token === secret || verifySignedToken(token)) {
       return true;
     }
   }
@@ -62,13 +62,13 @@ export function requireAdmin(request: Request) {
 export function createAdminSessionCookie() {
   const payload = `v1:${Date.now()}`;
   const token = `${payload}.${sign(payload)}`;
-  return `${COOKIE_NAME}=${encodeURIComponent(token)}; Path=/; HttpOnly; SameSite=Strict; Max-Age=${TOKEN_TTL_MS / 1000};${
+  return `${COOKIE_NAME}=${encodeURIComponent(token)}; Path=/; HttpOnly; SameSite=Lax; Max-Age=${TOKEN_TTL_MS / 1000};${
     process.env.NODE_ENV === "production" ? " Secure" : ""
   }`;
 }
 
 export function clearAdminSessionCookie() {
-  return `${COOKIE_NAME}=; Path=/; HttpOnly; SameSite=Strict; Max-Age=0;${
+  return `${COOKIE_NAME}=; Path=/; HttpOnly; SameSite=Lax; Max-Age=0;${
     process.env.NODE_ENV === "production" ? " Secure" : ""
   }`;
 }

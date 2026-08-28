@@ -116,6 +116,13 @@ export async function POST(req: Request) {
       }
     }
 
+    if (process.env.VERCEL === "1" || process.env.NODE_ENV === "production") {
+      return NextResponse.json(
+        { error: "Cloud storage not configured on server. Please set IMAGEKIT_PRIVATE_KEY, BLOB_READ_WRITE_TOKEN, or R2 credentials in Vercel environment variables." },
+        { status: 500 }
+      );
+    }
+
     // Dev fallback: local filesystem (read-only on Vercel production)
     const { key, url } = await uploadToLocalStorage({
       data: outputBuffer,

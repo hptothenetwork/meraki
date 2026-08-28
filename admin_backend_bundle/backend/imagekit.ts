@@ -37,8 +37,6 @@ export async function uploadToImageKit({
   }
 
   const form = new FormData();
-  // Send as binary Blob — avoids the ~33% base64 size inflation which causes
-  // ImageKit to reject videos that are under the limit but appear larger when base64-encoded.
   const bytes = Uint8Array.from(data);
   const fileBuffer = bytes.buffer.slice(bytes.byteOffset, bytes.byteOffset + bytes.byteLength);
   const blob = new Blob([fileBuffer], { type: contentType || "application/octet-stream" });
@@ -60,14 +58,24 @@ export async function uploadToImageKit({
     throw new Error(`ImageKit upload failed: ${res.status} ${msg}`);
   }
 
-  const json = (await res.json()) as { fileId?: string; url?: string };
+  const json = (await res.json()) as { fileId?: string; url?: string; filePath?: string };
   if (!json.fileId || !json.url) {
     throw new Error("ImageKit upload response missing fileId/url");
   }
 
+  // Strictly enforce the configured IMAGEKIT_URL_ENDPOINT (e.g. https://ik.imagekit.io/k6vqtwujl)
+  let finalUrl = json.url;
+  if (urlEndpoint) {
+    if (json.filePath) {
+      finalUrl = `${urlEndpoint.replace(/\/$/, "")}${json.filePath.startsWith("/") ? "" : "/"}${json.filePath}`;
+    } else {
+      finalUrl = json.url.replace(/^https?:\/\/[^\/]+\/[^\/]+/, urlEndpoint.replace(/\/$/, ""));
+    }
+  }
+
   return {
     key: json.fileId,
-    url: json.url,
+    url: finalUrl,
   };
 }
 
