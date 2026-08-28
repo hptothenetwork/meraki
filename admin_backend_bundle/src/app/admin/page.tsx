@@ -3352,7 +3352,7 @@ export default function AdminPage() {
                   />
                 ) : (
                   <img
-                    src={editingProduct.media[productMediaCarouselIndex].src}
+                    src={getProxiedUrl(editingProduct.media[productMediaCarouselIndex].src)}
                     alt={editingProduct.media[productMediaCarouselIndex].alt || "Main"}
                     className="h-full w-full object-cover"
                   />
@@ -3427,7 +3427,7 @@ export default function AdminPage() {
                       </div>
                     </div>
                   ) : (
-                    <img src={m.src} alt={m.alt || "media"} className="h-full w-full object-cover" />
+                    <img src={getProxiedUrl(m.src)} alt={m.alt || "media"} className="h-full w-full object-cover" />
                   )}
                   <div className="absolute left-1 top-1 flex gap-1">
                     <button
