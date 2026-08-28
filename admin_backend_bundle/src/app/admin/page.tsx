@@ -1114,6 +1114,12 @@ export default function AdminPage() {
   const getProxiedUrl = (url?: string, width = 500, quality = 80) => {
     if (!url) return undefined;
     let targetUrl = url;
+
+    // Automatically remap legacy ImageKit account ID (qsp4pqng4) stored in Firestore to new account (k6vqtwujl)
+    if (targetUrl.includes("ik.imagekit.io/qsp4pqng4")) {
+      targetUrl = targetUrl.replace("ik.imagekit.io/qsp4pqng4", "ik.imagekit.io/k6vqtwujl");
+    }
+
     if (targetUrl.includes("imagekit.io") && !targetUrl.includes("tr=")) {
       const [baseUrl] = targetUrl.split("?");
       targetUrl = `${baseUrl}?tr=w-${width},q-${quality},f-auto`;
@@ -1126,7 +1132,11 @@ export default function AdminPage() {
 
   const getVideoPosterUrl = (url?: string) => {
     if (!url || !url.includes("imagekit.io")) return undefined;
-    const cleanUrl = url.split("?")[0];
+    let targetUrl = url;
+    if (targetUrl.includes("ik.imagekit.io/qsp4pqng4")) {
+      targetUrl = targetUrl.replace("ik.imagekit.io/qsp4pqng4", "ik.imagekit.io/k6vqtwujl");
+    }
+    const cleanUrl = targetUrl.split("?")[0];
     return getProxiedUrl(`${cleanUrl}/ik-thumbnail.jpg?tr=so-0`);
   };
 
