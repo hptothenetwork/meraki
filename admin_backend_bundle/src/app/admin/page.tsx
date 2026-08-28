@@ -397,7 +397,15 @@ export default function AdminPage() {
     });
     if (res.ok) {
       const data = (await res.json()) as { items: AdminProduct[] };
-      setProducts(data.items || []);
+      const sanitized = (data.items || []).map((p) => ({
+        ...p,
+        fallbackImage: p.fallbackImage?.replace("ik.imagekit.io/qsp4pqng4", "ik.imagekit.io/k6vqtwujl"),
+        media: p.media?.map((m) => ({
+          ...m,
+          src: m.src?.replace("ik.imagekit.io/qsp4pqng4", "ik.imagekit.io/k6vqtwujl"),
+        })),
+      }));
+      setProducts(sanitized);
     }
   }, [storedToken]);
 

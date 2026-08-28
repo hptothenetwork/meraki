@@ -12,8 +12,9 @@ type UploadImageKitResult = {
   url: string;
 };
 
+const DEFAULT_IMAGEKIT_ENDPOINT = "https://ik.imagekit.io/k6vqtwujl";
 const privateKey = process.env.IMAGEKIT_PRIVATE_KEY;
-const urlEndpoint = process.env.IMAGEKIT_URL_ENDPOINT?.replace(/\/$/, "");
+const urlEndpoint = (process.env.IMAGEKIT_URL_ENDPOINT || DEFAULT_IMAGEKIT_ENDPOINT).replace(/\/$/, "");
 
 function getAuthHeader() {
   if (!privateKey) {
@@ -63,15 +64,15 @@ export async function uploadToImageKit({
     throw new Error("ImageKit upload response missing fileId/url");
   }
 
-  // Strictly enforce the configured IMAGEKIT_URL_ENDPOINT (e.g. https://ik.imagekit.io/k6vqtwujl)
+  // Strictly enforce the target endpoint (https://ik.imagekit.io/k6vqtwujl)
   let finalUrl = json.url;
-  if (urlEndpoint) {
-    if (json.filePath) {
-      finalUrl = `${urlEndpoint.replace(/\/$/, "")}${json.filePath.startsWith("/") ? "" : "/"}${json.filePath}`;
-    } else {
-      finalUrl = json.url.replace(/^https?:\/\/[^\/]+\/[^\/]+/, urlEndpoint.replace(/\/$/, ""));
-    }
+  if (json.filePath) {
+    finalUrl = `${urlEndpoint}${json.filePath.startsWith("/") ? "" : "/"}${json.filePath}`;
+  } else {
+    finalUrl = json.url.replace(/^https?:\/\/[^\/]+\/[^\/]+/, urlEndpoint);
   }
+  // Hard-replace legacy qsp4pqng4 account ID wherever present
+  finalUrl = finalUrl.replace("ik.imagekit.io/qsp4pqng4", "ik.imagekit.io/k6vqtwujl");
 
   return {
     key: json.fileId,
