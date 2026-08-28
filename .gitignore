@@ -33,6 +33,7 @@ pnpm-lock.yaml
 
 # Secrets — never commit these
 vercel-admin-import.env
+vercel-storefront-import.env
 scripts/*.json
 mrk/mrk/mrk/
 details/
