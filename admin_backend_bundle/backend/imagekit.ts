@@ -64,15 +64,19 @@ export async function uploadToImageKit({
     throw new Error("ImageKit upload response missing fileId/url");
   }
 
-  // Strictly enforce the target endpoint (https://ik.imagekit.io/k6vqtwujl)
+  // Enforce correct endpoint URL: https://ik.imagekit.io/k6vqtwujl
+  const cleanEndpoint = "https://ik.imagekit.io/k6vqtwujl";
   let finalUrl = json.url;
+
   if (json.filePath) {
-    finalUrl = `${urlEndpoint}${json.filePath.startsWith("/") ? "" : "/"}${json.filePath}`;
+    finalUrl = `${cleanEndpoint}${json.filePath.startsWith("/") ? "" : "/"}${json.filePath}`;
   } else {
-    finalUrl = json.url.replace(/^https?:\/\/[^\/]+\/[^\/]+/, urlEndpoint);
+    // If json.url is returned, ensure domain is replaced cleanly
+    finalUrl = json.url.replace(/^https?:\/\/[^\/]+\/[^\/]+/, cleanEndpoint);
   }
-  // Hard-replace legacy qsp4pqng4 account ID wherever present
-  finalUrl = finalUrl.replace("ik.imagekit.io/qsp4pqng4", "ik.imagekit.io/k6vqtwujl");
+
+  // Clean any malformed or legacy domain strings
+  finalUrl = finalUrl.replace("ik.qtwujl", "ik.imagekit.io/k6vqtwujl").replace("ik.imagekit.io/qsp4pqng4", "ik.imagekit.io/k6vqtwujl");
 
   return {
     key: json.fileId,

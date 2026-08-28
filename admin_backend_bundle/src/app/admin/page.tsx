@@ -1123,9 +1123,12 @@ export default function AdminPage() {
     if (!url) return undefined;
     let targetUrl = url;
 
-    // Automatically remap legacy ImageKit account ID (qsp4pqng4) stored in Firestore to new account (k6vqtwujl)
+    // Automatically remap legacy ImageKit account ID (qsp4pqng4) or malformed URLs stored in Firestore to new account (k6vqtwujl)
     if (targetUrl.includes("ik.imagekit.io/qsp4pqng4")) {
       targetUrl = targetUrl.replace("ik.imagekit.io/qsp4pqng4", "ik.imagekit.io/k6vqtwujl");
+    }
+    if (targetUrl.includes("ik.qtwujl")) {
+      targetUrl = targetUrl.replace("ik.qtwujl", "ik.imagekit.io/k6vqtwujl");
     }
 
     if (targetUrl.includes("imagekit.io") && !targetUrl.includes("tr=")) {
