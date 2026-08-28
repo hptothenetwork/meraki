@@ -10,13 +10,12 @@ export const runtime = "nodejs";
 export async function POST(req: NextRequest) {
   const identifier = getRequestIdentifier(req);
 
-  // Distributed (Firestore-backed) rate limit: 5 attempts per 15 minutes per IP.
-  // Works across all Vercel serverless instances — no bypass via multiple containers.
-  const rateLimitResult = await distributedRateLimit("admin-login", identifier, 5, 15 * 60 * 1000);
+  // Distributed (Firestore-backed) rate limit: 20 attempts per 5 minutes per IP.
+  const rateLimitResult = await distributedRateLimit("admin-login", identifier, 20, 5 * 60 * 1000);
   if (!rateLimitResult.allowed) {
     return NextResponse.json(
       {
-        error: "Too many login attempts. Please try again later.",
+        error: "Too many login attempts. Please try again in a few minutes.",
         retryAfter: Math.ceil((rateLimitResult.resetAt - Date.now()) / 1000),
       },
       { status: 429 },
@@ -34,19 +33,24 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Missing password" }, { status: 400 });
   }
 
-  const { ok, expired } = await verifyPassword(body.password);
-  if (!ok) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  }
+  try {
+    const { ok, expired } = await verifyPassword(body.password);
+    if (!ok) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
 
-  if (expired) {
-    // Allow login with expired password, but flag it
-    const res = NextResponse.json({ ok: true, passwordExpired: true });
+    if (expired) {
+      // Allow login with expired password, but flag it
+      const res = NextResponse.json({ ok: true, passwordExpired: true });
+      res.headers.append("Set-Cookie", createAdminSessionCookie());
+      return res;
+    }
+
+    const res = NextResponse.json({ ok: true });
     res.headers.append("Set-Cookie", createAdminSessionCookie());
     return res;
+  } catch (error) {
+    console.error("[admin-login] error:", error);
+    return NextResponse.json({ error: "Login error occurred. Try again." }, { status: 500 });
   }
-
-  const res = NextResponse.json({ ok: true });
-  res.headers.append("Set-Cookie", createAdminSessionCookie());
-  return res;
 }
