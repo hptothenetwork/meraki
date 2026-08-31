@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { deleteFromR2, extractR2Key, isR2Ready, uploadToR2 } from "@backend/r2";
+import { deleteFromR2, extractR2Key, getR2MissingVars, isR2Ready, uploadToR2 } from "@backend/r2";
 import { deleteFromLocalStorage, extractLocalUploadKey, uploadToLocalStorage } from "@backend/local-upload";
 import { deleteFromVercelBlob, isVercelBlobConfigured, uploadToVercelBlob } from "@backend/vercel-blob";
 import { requireAdmin } from "@backend/admin/auth";
@@ -101,8 +101,9 @@ export async function POST(req: Request) {
     }
 
     if (process.env.VERCEL === "1" || process.env.NODE_ENV === "production") {
+      const missing = getR2MissingVars();
       return NextResponse.json(
-        { error: "Cloud storage not configured on server. Please set R2 or Vercel Blob credentials in Vercel environment variables." },
+        { error: `Cloud storage not configured on server. Missing env vars on admin backend: ${missing.length > 0 ? missing.join(", ") : "Unknown (please redeploy in Vercel)"}` },
         { status: 500 }
       );
     }

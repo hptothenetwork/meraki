@@ -139,3 +139,13 @@ function buildPublicUrl(key: string, targetBucket: string) {
 export function isR2Ready() {
   return getR2Config().isReady;
 }
+
+export function getR2MissingVars(): string[] {
+  const config = getR2Config();
+  const missing: string[] = [];
+  if (!config.accessKeyId) missing.push("R2_ACCESS_KEY");
+  if (!config.secretAccessKey) missing.push("R2_SECRET_KEY");
+  if (!config.bucket) missing.push("R2_BUCKET");
+  if (!config.endpoint) missing.push("R2_ENDPOINT (or R2_ACCOUNT_ID)");
+  return missing;
+}
