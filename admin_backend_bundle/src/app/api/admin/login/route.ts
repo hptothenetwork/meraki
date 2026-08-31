@@ -50,7 +50,8 @@ export async function POST(req: NextRequest) {
     res.headers.append("Set-Cookie", createAdminSessionCookie());
     return res;
   } catch (error) {
-    console.error("[admin-login] error:", error);
-    return NextResponse.json({ error: "Login error occurred. Try again." }, { status: 500 });
+    const detail = error instanceof Error ? error.message : String(error);
+    console.error("[admin-login] error:", detail, error);
+    return NextResponse.json({ error: `Login error: ${detail}` }, { status: 500 });
   }
 }
