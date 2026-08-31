@@ -37,10 +37,7 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ error: "Invalid URL" }, { status: 400, headers: CORS_HEADERS });
   }
 
-  const imageKitHost = process.env.IMAGEKIT_URL_ENDPOINT
-    ? new URL(process.env.IMAGEKIT_URL_ENDPOINT).host
-    : "";
-  const allowedHosts = ["r2.cloudflarestorage.com", ".r2.dev", "ik.imagekit.io", ".imagekit.io", imageKitHost].filter(Boolean);
+  const allowedHosts = ["r2.cloudflarestorage.com", ".r2.dev", "ik.imagekit.io", ".imagekit.io", "imagedelivery.net"].filter(Boolean);
   const hostAllowed = allowedHosts.some((h) => parsed.host === h || parsed.host.endsWith(h));
   if (!hostAllowed) {
     return NextResponse.json({ error: "Host not allowed" }, { status: 403, headers: CORS_HEADERS });

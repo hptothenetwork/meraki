@@ -9,10 +9,8 @@ const endpointFromEnv = process.env.R2_ENDPOINT;
 const accountId = process.env.R2_ACCOUNT_ID;
 const endpoint = (endpointFromEnv || (accountId ? `https://${accountId}.r2.cloudflarestorage.com` : undefined))?.replace(/\/$/, "");
 const publicBaseOverride = process.env.R2_PUBLIC_BASE_URL?.replace(/\/$/, "");
-const hasImageKitFallback = Boolean(process.env.IMAGEKIT_PRIVATE_KEY && process.env.IMAGEKIT_URL_ENDPOINT);
-
 const isConfigured = Boolean(accessKeyId && secretAccessKey && bucket && endpoint);
-if (!isConfigured && !hasImageKitFallback) {
+if (!isConfigured) {
   console.warn("[r2] Missing R2 credentials or bucket configuration; admin uploads will use local storage fallback.");
 }
 

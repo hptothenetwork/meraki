@@ -7,10 +7,9 @@ const nextConfig: NextConfig = {
     remotePatterns: [
       { protocol: "https", hostname: "*.r2.dev" },
       { protocol: "https", hostname: "*.r2.cloudflarestorage.com" },
+      { protocol: "https", hostname: "imagedelivery.net" },
       { protocol: "https", hostname: "*.firebasestorage.app" },
       { protocol: "https", hostname: "firebasestorage.googleapis.com" },
-      { protocol: "https", hostname: "ik.imagekit.io" },
-      { protocol: "https", hostname: "*.imagekit.io" },
     ],
   },
   async headers() {

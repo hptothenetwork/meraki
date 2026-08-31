@@ -1,6 +1,5 @@
 import { NextResponse } from "next/server";
 import { deleteFromR2, extractR2Key, isR2Ready, uploadToR2 } from "@backend/r2";
-import { deleteFromImageKit, isImageKitConfigured, uploadToImageKit } from "@backend/imagekit";
 import { deleteFromLocalStorage, extractLocalUploadKey, uploadToLocalStorage } from "@backend/local-upload";
 import { deleteFromVercelBlob, isVercelBlobConfigured, uploadToVercelBlob } from "@backend/vercel-blob";
 import { requireAdmin } from "@backend/admin/auth";
@@ -68,21 +67,6 @@ export async function POST(req: Request) {
   }
 
   try {
-    if (isImageKitConfigured()) {
-      try {
-        const { key, url } = await uploadToImageKit({
-          data: outputBuffer,
-          contentType: outputContentType,
-          fileName: outputFileName,
-          folder: "/products",
-        });
-        return NextResponse.json({ url, key, public_id: key, provider: "imagekit" });
-      } catch (error) {
-        const detail = error instanceof Error ? error.message : String(error);
-        console.error("[upload] imagekit failed:", detail);
-        return NextResponse.json({ error: `ImageKit upload failed: ${detail}` }, { status: 500 });
-      }
-    }
 
     if (isVercelBlobConfigured()) {
       try {
@@ -118,7 +102,7 @@ export async function POST(req: Request) {
 
     if (process.env.VERCEL === "1" || process.env.NODE_ENV === "production") {
       return NextResponse.json(
-        { error: "Cloud storage not configured on server. Please set IMAGEKIT_PRIVATE_KEY, BLOB_READ_WRITE_TOKEN, or R2 credentials in Vercel environment variables." },
+        { error: "Cloud storage not configured on server. Please set R2 or Vercel Blob credentials in Vercel environment variables." },
         { status: 500 }
       );
     }
@@ -185,11 +169,6 @@ export async function DELETE(req: Request) {
   const publicId = searchParams.get("public_id");
   if (!publicId) return NextResponse.json({ error: "Missing public_id" }, { status: 400 });
   try {
-    // ImageKit file IDs start with "file_"
-    if (isImageKitConfigured() && /^file_/.test(publicId)) {
-      await deleteFromImageKit(publicId);
-      return NextResponse.json({ ok: true });
-    }
 
     // Vercel Blob URLs are full https:// URLs
     if (isVercelBlobConfigured() && publicId.startsWith("https://")) {
