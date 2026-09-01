@@ -72,6 +72,33 @@ export function buildOrganizationJsonLd(): JsonLd {
   }
 }
 
+export function buildStoreJsonLd(): JsonLd {
+  const siteUrl = getSiteUrl()
+  return {
+    "@context": "https://schema.org",
+    "@type": "ClothingStore",
+    name: BRAND_NAME,
+    url: siteUrl,
+    logo: toAbsoluteUrl("/logo/logo.svg"),
+    image: toAbsoluteUrl("/placeholder.jpg"),
+    description: "Modest fashion brand in Dar es Salaam, Tanzania offering premium Batik kaftans, boubous, and African-inspired modest wear.",
+    address: {
+      "@type": "PostalAddress",
+      addressLocality: "Dar es Salaam",
+      addressRegion: "Dar es Salaam",
+      addressCountry: "TZ",
+    },
+    geo: {
+      "@type": "GeoCoordinates",
+      latitude: -6.7924,
+      longitude: 39.2083,
+    },
+    priceRange: "$$",
+    currenciesAccepted: "TZS, USD",
+    sameAs: ["https://www.instagram.com/meraki_the_brand/"],
+  }
+}
+
 export function buildBreadcrumbJsonLd(items: Array<{ name: string; path: string }>): JsonLd {
   return {
     "@context": "https://schema.org",

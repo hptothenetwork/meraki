@@ -4,7 +4,7 @@ import { Analytics } from '@vercel/analytics/next'
 import { Toaster } from 'sonner'
 import { FirebaseAnalytics } from "@/components/firebase-analytics"
 import { CartProvider } from "@/lib/cart-context"
-import { buildOrganizationJsonLd, buildWebsiteJsonLd, safeJsonLd } from "@/lib/seo"
+import { buildOrganizationJsonLd, buildStoreJsonLd, buildWebsiteJsonLd, safeJsonLd } from "@/lib/seo"
 import './globals.css'
 
 const inter = Inter({
@@ -70,6 +70,16 @@ export const metadata: Metadata = {
     "batik kaftan",
     "batik boubou",
     "batik dress",
+    "gauni la batik",
+    "gauni za batik",
+    "mishono ya batik",
+    "mishono ya vitenge",
+    "batik Kinondoni",
+    "modest boutique Dar es Salaam",
+    "Zanzibar modest fashion",
+    "Arusha modest fashion",
+    "boubou Dar es Salaam",
+    "kaftan Magomeni",
   ],
   authors: [{ name: "MERAKI the Brand" }],
   creator: "MERAKI the Brand",
@@ -81,13 +91,22 @@ export const metadata: Metadata = {
     siteName: "MERAKI the Brand",
     title: "MERAKI the Brand | Modest Afro-Inspired Fashion",
     description:
-      "Elegant modest wear inspired by African identity. Shop kaftans and boubous designed in Tanzania.",
+      "Elegant Batik kaftans, boubous, and modest wear inspired by African identity. Shop online in Dar es Salaam, Tanzania.",
+    images: [
+      {
+        url: "/apple-icon.png",
+        width: 512,
+        height: 512,
+        alt: "MERAKI the Brand",
+      },
+    ],
   },
   twitter: {
     card: "summary_large_image",
     title: "MERAKI the Brand | Modest Afro-Inspired Fashion",
     description:
-      "Elegant modest wear inspired by African identity. Shop kaftans and boubous designed in Tanzania.",
+      "Elegant Batik kaftans, boubous, and modest wear inspired by African identity. Shop online in Dar es Salaam, Tanzania.",
+    images: ["/apple-icon.png"],
   },
   robots: {
     index: true,
@@ -120,7 +139,7 @@ export default function RootLayout({
 }: Readonly<{
   children: React.ReactNode
 }>) {
-  const globalJsonLd = [buildOrganizationJsonLd(), buildWebsiteJsonLd()]
+  const globalJsonLd = [buildOrganizationJsonLd(), buildWebsiteJsonLd(), buildStoreJsonLd()]
 
   return (
     <html lang="en" data-scroll-behavior="smooth" suppressHydrationWarning>
