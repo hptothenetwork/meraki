@@ -35,6 +35,9 @@ export const metadata: Metadata = {
   alternates: {
     canonical: "/",
   },
+  verification: {
+    google: "google4658718c4c3c2bef",
+  },
   keywords: [
     "Meraki the Brand",
     "modest fashion Tanzania",
