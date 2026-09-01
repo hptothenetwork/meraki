@@ -23,7 +23,7 @@ const dancing = Dancing_Script({
 })
 
 export const metadata: Metadata = {
-  metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL || "https://merakithebrand.com"),
+  metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL || "https://merakithebrand.store"),
   title: {
     default: "MERAKI the Brand | Modest Afro-Inspired Fashion",
     template: "%s | MERAKI the Brand",

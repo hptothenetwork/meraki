@@ -1,6 +1,6 @@
 type JsonLd = Record<string, unknown>
 
-const FALLBACK_SITE_URL = "https://merakithebrand.com"
+const FALLBACK_SITE_URL = "https://merakithebrand.store"
 const BRAND_NAME = "MERAKI the Brand"
 
 export function getSiteUrl() {
