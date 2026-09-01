@@ -29,7 +29,7 @@ export const metadata: Metadata = {
     template: "%s | MERAKI the Brand",
   },
   description:
-    "Discover elegant kaftans and boubous crafted for graceful coverage, comfort, and confident modest style in Tanzania.",
+    "Discover elegant Batik kaftans, boubous, and modest fashion crafted for graceful coverage, comfort, and confident style in Dar es Salaam, Tanzania.",
   applicationName: "MERAKI the Brand",
   category: "fashion",
   alternates: {
@@ -63,6 +63,13 @@ export const metadata: Metadata = {
     "flowy modest dresses",
     "chiffon kaftan",
     "hijab fashion Tanzania",
+    "batik",
+    "batik dar es salaam",
+    "batik magomeni",
+    "batik Tanzania",
+    "batik kaftan",
+    "batik boubou",
+    "batik dress",
   ],
   authors: [{ name: "MERAKI the Brand" }],
   creator: "MERAKI the Brand",
